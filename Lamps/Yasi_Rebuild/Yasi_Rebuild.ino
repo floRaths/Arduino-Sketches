@@ -99,11 +99,10 @@ rampInt lowerRamp;
 rampInt upperRamp;
 
 
-
 void setup() {
 
   delay(500);
-  FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
+  FastLED.addLeds < WS2812B, LED_PIN, GRB > (leds, NUM_LEDS);
   FastLED.setBrightness(255);
 
   btn.attachClick(areaButton);
@@ -133,7 +132,6 @@ void loop() {
   btn.tick();
 
 }
-
 
 
 //   memset(noiseCols, 0, NUM_LEDS);
