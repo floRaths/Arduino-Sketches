@@ -285,7 +285,7 @@ CRGBPalette16  lavaPalette = CRGBPalette16(
   CRGB::White,    CRGB::Orange,   CRGB::Red,      CRGB::DarkRed
 );
 
-q
+
 void lava() {
 
   for (int i = 0; i < NUM_LEDS; i++) {
