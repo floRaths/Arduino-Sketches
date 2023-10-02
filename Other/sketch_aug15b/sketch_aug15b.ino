@@ -1,3 +1,5 @@
+#include <FastLED.h>
+
 void rainbow()
 {
 // FastLED’s built-in rainbow generator
