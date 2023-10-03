@@ -3,6 +3,7 @@
 #define NUM_LEDS 110
 #define LED_PIN 5
 
+
 CRGB      leds[NUM_LEDS];
 uint8_t   noiseData[NUM_LEDS];
 
