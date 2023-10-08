@@ -1,0 +1,28 @@
+{
+    "version": 1,
+        "author": "sutaburosu",
+            "editor": "wokwi",
+                "parts": [
+                    { "type": "wokwi-arduino-nano", "id": "nano", "top": -549.89, "left": -251.51, "attrs": {} },
+                    {
+                        "type": "wokwi-neopixel-canvas",
+                        "id": "neopixels1",
+                        "top": -447.34,
+                        "left": -217.56,
+                        "attrs": { "rows": "23", "cols": "5", "pixelate": "1" }
+                    },
+                    {
+                        "type": "wokwi-pushbutton",
+                        "id": "btn1",
+                        "top": -508.07,
+                        "left": -376.4,
+                        "attrs": { "color": "green", "key": "Control" }
+                    }
+                ],
+                    "connections": [
+                        ["nano:5", "neopixels1:DIN", "", ["v-9.6", "*", "v9.6"]],
+                        ["btn1:1.r", "nano:7", "green", ["v0"]],
+                        ["btn1:2.r", "nano:GND.2", "green", ["h0"]]
+                    ],
+                        "dependencies": { }
+}

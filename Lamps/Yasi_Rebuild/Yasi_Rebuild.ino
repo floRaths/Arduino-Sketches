@@ -11,41 +11,35 @@ OneButton btn = OneButton(BTN_PIN, true, true);
 // Params for width and height
 const uint8_t kMatrixWidth  = 5;
 const uint8_t kMatrixHeight = 23;
+boolean       flip          = true;
+
+const uint8_t XYTableSize = kMatrixWidth * kMatrixHeight;
+uint8_t       XYTable[XYTableSize];
 
 #define NUM_LEDS (kMatrixWidth * kMatrixHeight)
 CRGB leds[ NUM_LEDS ];
-#define LAST_VISIBLE_LED 114
+
+uint8_t LAST_VISIBLE_LED = NUM_LEDS - 1;
 uint8_t XY (uint8_t x, uint8_t y) {
   // any out of bounds address maps to the first hidden pixel
   if ( (x >= kMatrixWidth) || (y >= kMatrixHeight) ) {
     return (LAST_VISIBLE_LED + 1);
   }
 
-  const uint8_t XYTable[] = {
-   110, 111, 112, 113, 114,
-   105, 106, 107, 108, 109,
-   100, 101, 102, 103, 104,
-    95,  96,  97,  98,  99,
-    90,  91,  92,  93,  94,
-    85,  86,  87,  88,  89,
-    80,  81,  82,  83,  84,
-    75,  76,  77,  78,  79,
-    70,  71,  72,  73,  74,
-    65,  66,  67,  68,  69,
-    60,  61,  62,  63,  64,
-    55,  56,  57,  58,  59,
-    50,  51,  52,  53,  54,
-    45,  46,  47,  48,  49,
-    40,  41,  42,  43,  44,
-    35,  36,  37,  38,  39,
-    30,  31,  32,  33,  34,
-    25,  26,  27,  28,  29,
-    20,  21,  22,  23,  24,
-    15,  16,  17,  18,  19,
-    10,  11,  12,  13,  14,
-     5,   6,   7,   8,   9,
-     0,   1,   2,   3,   4
-  };
+  uint8_t index = 0;
+  for (uint8_t y = 0; y < kMatrixHeight; y++) {
+    for (uint8_t x = 0; x < kMatrixWidth; x++) {
+      
+      if ( flip == true ) {
+        XYTable[index] = kMatrixWidth * kMatrixHeight - index - 1;
+        }
+      else {
+        XYTable[index] = y * kMatrixWidth + x; 
+        };
+      
+      index++;
+    }
+  }
 
   uint8_t i = (y * kMatrixWidth) + x;
   uint8_t j = XYTable[i];
@@ -53,7 +47,7 @@ uint8_t XY (uint8_t x, uint8_t y) {
 }
 
 uint8_t noiseCols[NUM_LEDS];
-uint8_t noiseLuma[kMatrixHeight][kMatrixHeight];
+uint8_t noiseData[kMatrixHeight][kMatrixHeight];
 
 boolean start_up        = false;
 boolean new_hues        = false;
@@ -91,23 +85,27 @@ uint8_t sat[4];
 uint8_t bri[4];
 
 ramp briRamp;
-
 ramp palRamp1;
 ramp palRamp2;
-
 rampInt lowerRamp;
 rampInt upperRamp;
+
+
+uint32_t timeVal = 0;
 
 
 void setup() {
 
   delay(500);
-  FastLED.addLeds < WS2812B, LED_PIN, GRB > (leds, NUM_LEDS);
+  Serial.begin(9600);
+
+  FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(255);
 
-  btn.attachClick(areaButton);
+  btn.attachClick(paletteButton);
 
 }
+
 
 void loop() {
   
@@ -115,10 +113,10 @@ void loop() {
   buttonSwitches();
   blendColors( speed1, speed2 );
 
-  makeNoise2();
+  makeNoise();
 
   EVERY_N_SECONDS(3) {
-    if ( palRamp2.isFinished() == 1 & palette_changed == false ) {
+    if ( palRamp2.isFinished() == 1 && palette_changed == false ) {
       grant_blend = true;
       speed1 = 500;
       speed2 = 500;
@@ -133,45 +131,41 @@ void loop() {
 
 }
 
+void makeNoise() {
 
-//   memset(noiseCols, 0, NUM_LEDS);
-//   fill_raw_noise8(noiseCols, NUM_LEDS, octaveVal, xVal, scaleVal, timeVal);
+  // fill_raw_noise16into8   (uint8_t *pData, uint8_t num_points,     uint8_t octaves, uint32_t x, int scalex,                          uint32_t time)
+  // fill_raw_2dnoise16into8 (uint8_t *pData, int width, int height,  uint8_t octaves, uint32_t x, int scalex, uint32_t y, int scaley,  uint32_t time)
 
-//   CRGBPalette16 runPal = CRGBPalette(col[0], col[1], col[2], col[3])
+  timeVal = millis() * 40;
 
-//   for(int x = 0; x < kMatrixWidth; x++) {
-//     for(int y = 0; y < kMatrixHeight; y++) {
-      
-//       leds[XY(x,y)] = 
-//       ColorFromPalette( runPal, 
-//                         noiseCols[(y * kMatrixWidth) + x],
-//                         brighten8_raw(map8(noiseLuma[x, y], 0, CurrentBri))
-//                         );
-
-//     }
-//   }
-// }
-
-void makeNoise2() {
-
-  uint8_t   octaveVal   = 1;
-  uint16_t  xVal        = 0;
-  int       scaleVal    = 50;
-  int       timeVal     = 0;
-
-  timeVal = millis() / 4;
+  memset(noiseData, 0, NUM_LEDS);  
+  fill_raw_2dnoise16into8 (
+    (uint8_t*)noiseData, 
+    kMatrixHeight,  //width, 
+    kMatrixHeight,  //height, 
+    1,              //octaves, 
+    5000,           //x, 
+    5000,           //scalex, 
+    1000,           //y, 
+    5000,           //scaley, 
+    timeVal
+    );
 
   memset(noiseCols, 0, NUM_LEDS);
-  fill_raw_noise8(noiseCols, NUM_LEDS, octaveVal, xVal, scaleVal, timeVal);
-  
-  CRGBPalette16 runPal = CRGBPalette16(col[0], col[2], col[1], col[3]);
+  fill_raw_noise16into8(noiseCols, NUM_LEDS, 1, 33000, 550, timeVal);
 
-  for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = ColorFromPalette(runPal, 
-      noiseCols[i], 
-      //noiseCols[NUM_LEDS - i - 1]
-      map8(noiseCols[NUM_LEDS - i - 1], 0, CurrentBri)
-      );
+  CRGBPalette16 runPal = CRGBPalette16(col[0], col[1], col[2], col[3]);
+
+  for(int x = 0; x < kMatrixWidth; x++) {
+    for(int y = 0; y < kMatrixHeight; y++) {
+      
+      leds[XY(x,y)] = 
+      ColorFromPalette( runPal, 
+                        noiseCols[(y * kMatrixWidth) + x],
+                        brighten8_raw(map8(noiseData[x][y], 0, CurrentBri))
+                        );
+
+    }
   }
 }
 
@@ -268,7 +262,9 @@ void moveRange( uint8_t lower, uint8_t upper, uint8_t steps ) {
 
 void startUp() {
   if ( start_up == false ) {
-    briRamp.go(CurrentBri, 1000, LINEAR);
+    briRamp.go    ( CurrentBri, 1000, LINEAR);
+    lowerRamp.go  ( lower,      2000, LINEAR);
+    upperRamp.go  ( upper,      2000, LINEAR);
     start_up = true;
   }
 }
