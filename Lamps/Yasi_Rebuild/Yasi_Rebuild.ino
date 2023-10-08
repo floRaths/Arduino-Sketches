@@ -12,41 +12,105 @@ OneButton btn = OneButton(BTN_PIN, true, true);
 
 // #############################################
 // Params for width and height
-const uint8_t kMatrixWidth  = 9;
-const uint8_t kMatrixHeight = 16;
-boolean       flip          = true;
+// const uint8_t kMatrixWidth  = 9;
+// const uint8_t kMatrixHeight = 16;
+// boolean       flip          = true;
 
-const uint8_t XYTableSize = kMatrixWidth * kMatrixHeight;
-uint8_t       XYTable[XYTableSize];
+// const uint8_t XYTableSize = kMatrixWidth * kMatrixHeight;
+// uint8_t       XYTable[XYTableSize];
+
+// #define NUM_LEDS (kMatrixWidth * kMatrixHeight)
+// CRGB leds[ NUM_LEDS ];
+
+// uint8_t LAST_VISIBLE_LED = NUM_LEDS - 1;
+// uint8_t XY (uint8_t x, uint8_t y) {
+  
+//   // any out of bounds address maps to the first hidden pixel
+//   if ( (x >= kMatrixWidth) || (y >= kMatrixHeight) ) {
+//     return (LAST_VISIBLE_LED + 1);
+//   }
+
+//   uint8_t index = 0;
+//   for (uint8_t y = 0; y < kMatrixHeight; y++) {
+//     for (uint8_t x = 0; x < kMatrixWidth; x++) {
+      
+//       if ( flip == true ) {
+//         XYTable[index] = kMatrixWidth * kMatrixHeight - index - 1;
+//         }
+//       else {
+//         XYTable[index] = y * kMatrixWidth + x; 
+//         };
+      
+//       index++;
+//     }
+//   }
+
+//   uint8_t i = (y * kMatrixWidth) + x;
+//   uint8_t j = XYTable[i];
+//   return j;
+// }
+
+
+// // Params for width and height
+// const uint8_t kMatrixWidth = 9;
+// const uint8_t kMatrixHeight = 16;
+
+// #define NUM_LEDS (kMatrixWidth * kMatrixHeight)
+// CRGB leds[ NUM_LEDS ];
+// #define LAST_VISIBLE_LED 143
+// uint8_t XY (uint8_t x, uint8_t y) {
+//   // any out of bounds address maps to the first hidden pixel
+//   if ( (x >= kMatrixWidth) || (y >= kMatrixHeight) ) {
+//     return (LAST_VISIBLE_LED + 1);
+//   }
+
+//   const uint8_t XYTable[] = {
+//      0,  31,  32,  63,  64,  95,  96, 127, 128,
+//      1,  30,  33,  62,  65,  94,  97, 126, 129,
+//      2,  29,  34,  61,  66,  93,  98, 125, 130,
+//      3,  28,  35,  60,  67,  92,  99, 124, 131,
+//      4,  27,  36,  59,  68,  91, 100, 123, 132,
+//      5,  26,  37,  58,  69,  90, 101, 122, 133,
+//      6,  25,  38,  57,  70,  89, 102, 121, 134,
+//      7,  24,  39,  56,  71,  88, 103, 120, 135,
+//      8,  23,  40,  55,  72,  87, 104, 119, 136,
+//      9,  22,  41,  54,  73,  86, 105, 118, 137,
+//     10,  21,  42,  53,  74,  85, 106, 117, 138,
+//     11,  20,  43,  52,  75,  84, 107, 116, 139,
+//     12,  19,  44,  51,  76,  83, 108, 115, 140,
+//     13,  18,  45,  50,  77,  82, 109, 114, 141,
+//     14,  17,  46,  49,  78,  81, 110, 113, 142,
+//     15,  16,  47,  48,  79,  80, 111, 112, 143
+//   };
+
+//   uint8_t i = (y * kMatrixWidth) + x;
+//   uint8_t j = XYTable[i];
+//   return j;
+// }
+
+// Params for width and height
+const uint8_t kMatrixWidth = 9;
+const uint8_t kMatrixHeight = 16;
 
 #define NUM_LEDS (kMatrixWidth * kMatrixHeight)
-CRGB leds[ NUM_LEDS ];
+CRGB leds[NUM_LEDS];
 
-uint8_t LAST_VISIBLE_LED = NUM_LEDS - 1;
-uint8_t XY (uint8_t x, uint8_t y) {
+uint8_t XY(uint8_t x, uint8_t y) {
   // any out of bounds address maps to the first hidden pixel
-  if ( (x >= kMatrixWidth) || (y >= kMatrixHeight) ) {
-    return (LAST_VISIBLE_LED + 1);
+  if ((x >= kMatrixWidth) || (y >= kMatrixHeight)) {
+    return (NUM_LEDS);
   }
 
-  uint8_t index = 0;
-  for (uint8_t y = 0; y < kMatrixHeight; y++) {
-    for (uint8_t x = 0; x < kMatrixWidth; x++) {
-      
-      if ( flip == true ) {
-        XYTable[index] = kMatrixWidth * kMatrixHeight - index - 1;
-        }
-      else {
-        XYTable[index] = y * kMatrixWidth + x; 
-        };
-      
-      index++;
-    }
+  uint8_t i;
+  if (x % 2 == 0) {
+    // Even columns, counting from top to bottom
+    i = x * kMatrixHeight + y;
+  } else {
+    // Odd columns, counting from bottom to top
+    i = x * kMatrixHeight + (kMatrixHeight - 1 - y);
   }
 
-  uint8_t i = (y * kMatrixWidth) + x;
-  uint8_t j = XYTable[i];
-  return j;
+  return i;
 }
 
 
@@ -128,7 +192,7 @@ void loop() {
 
   makeNoise();
 
-  EVERY_N_SECONDS(3) {
+  EVERY_N_SECONDS(10) {
     if ( palRamp2.isFinished() == 1 && palette_changed == false ) {
 
       // ############# JUST FOR TESTING!!!
@@ -138,8 +202,8 @@ void loop() {
       // #############
 
       grant_blend = true;
-      speed1 = 500;
-      speed2 = 500;
+      speed1 = 2000;
+      speed2 = 2000;
     }
   }
 
@@ -172,7 +236,7 @@ void makeNoise() {
   // fill_raw_noise16into8   (uint8_t *pData, uint8_t num_points,     uint8_t octaves, uint32_t x, int scalex,                          uint32_t time)
   // fill_raw_2dnoise16into8 (uint8_t *pData, int width, int height,  uint8_t octaves, uint32_t x, int scalex, uint32_t y, int scaley,  uint32_t time)
 
-  timeVal = millis() * 40;
+  timeVal = millis() * 25;
 
   memset(noiseData, 0, NUM_LEDS);  
   fill_raw_2dnoise16into8 (
