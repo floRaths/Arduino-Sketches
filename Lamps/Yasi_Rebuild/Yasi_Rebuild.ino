@@ -60,6 +60,7 @@ uint8_t XY(uint8_t x, uint8_t y) {
 }
 
 
+
 // #############################################
 // two arrays holding the noise data for colors and luminosity
 uint8_t noiseCols[NUM_LEDS];
@@ -113,9 +114,10 @@ ramp palRamp2; // smooth palette blending 2
 rampInt lowerRamp; // smooth area blending 1
 rampInt upperRamp; // smooth area blending 2
 
-uint32_t timeVal;
+uint32_t timeLuma;
+uint32_t timeCols;
 
-uint8_t hurry = 10;
+uint8_t hurry = 15;
 
 // #############################################
 // ################## SETUP ####################
@@ -147,18 +149,21 @@ void loop() {
 
   makeNoise();
   
-  EVERY_N_SECONDS(8) {
+  EVERY_N_SECONDS(3) {
     if (palRamp2.isFinished() == 1 && palette_changed == false) {
 
-        //############# JUST FOR TESTING!!!
-        // base_hue1 = random(0, 255);
-        // base_hue2 = base_hue1 + random(50, 205);
-        // range = random(5, 20);
-        //#############
+        // ############# JUST FOR TESTING!!!
+        base_hue1 = random(0, 255);
+        base_hue2 = base_hue1 + random(50, 205);
+        range = random(5, 20);
+        // #############
 
         grant_blend = true;
-        speed1 = 2000;
-        speed2 = 2000;
+        speed1 = 5000;
+        speed2 = 2500;
+
+        // Serial.print("Color 1 hue = ");
+        // Serial.println(hue[0]);
     }
   }
 
@@ -189,23 +194,24 @@ void startUp()
 
 void makeNoise() {
 
-  timeVal = millis() * hurry;
+  timeLuma = millis() * hurry;
+  timeCols = millis() * hurry / 2;
 
-  memset(noiseData, 0, NUM_LEDS);  
-  fill_raw_2dnoise16into8 (
-    (uint8_t*)noiseData,
-    kMatrixHeight,  // width 
-    kMatrixHeight,  // height 
-    1,              // octaves 
-    5000,           // x
-    500000,           // scalex 
-    1000,           // y
-    500000,           // scaley
-    timeVal         // timeVal
-    );
+  memset(noiseData, 0, NUM_LEDS);
+  fill_raw_2dnoise16into8(
+    (uint8_t *)noiseData,
+    kMatrixHeight, // width
+    kMatrixHeight, // height
+    1,             // octaves
+    5000,          // x
+    50000,       // scalex
+    1000,          // y
+    50000,       // scaley
+    timeLuma       // timeVal
+  );
 
   memset(noiseCols, 0, NUM_LEDS);
-  fill_raw_noise16into8(noiseCols, NUM_LEDS, 1, 33000, 550, timeVal);
+  fill_raw_noise16into8(noiseCols, NUM_LEDS, 1, 33000, 550, timeCols);
 
   CRGBPalette16 runPal = CRGBPalette16(col[0], col[1], col[2], col[3]);
 
