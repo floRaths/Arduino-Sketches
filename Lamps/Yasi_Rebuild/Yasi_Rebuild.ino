@@ -81,13 +81,13 @@ uint8_t Bri2 = 255;
 uint8_t Bri3 = 255;
 
 // brightness parameter for smoothe bri changes
-uint8_t CurrentBri = 255; // this is the currently running brightness, called by the makenoise function
-uint8_t TargetBri = 255;  // when the button is pressed, this is the new brightness to transition to
+uint8_t CurrentBri = 100; // this is the currently running brightness, called by the makenoise function
+uint8_t TargetBri  = 255;  // when the button is pressed, this is the new brightness to transition to
 uint8_t stored_bri = 255; // ???
 
 // prameters for palette selection
 uint8_t base_hue1 = 0;   // first hue
-uint8_t base_hue2 = 255; // second hue
+uint8_t base_hue2 = 150; // second hue
 uint8_t range = 20;      // fluctuation
 
 // parameter for moving the lit area
@@ -114,20 +114,26 @@ ramp palRamp2; // smooth palette blending 2
 rampInt lowerRamp; // smooth area blending 1
 rampInt upperRamp; // smooth area blending 2
 
-
-uint32_t timeVal = 0;
-
+uint32_t timeVal;
 
 
 // #############################################
 // ################## SETUP ####################
 void setup() {
 
-  delay(500); // startup safety delay
-  Serial.begin(9600);
+  delay(1); // startup safety delay
+  Serial.begin(115200);
+  randomSeed(analogRead(0));
 
-  FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
+  FastLED.addLeds < WS2812B, LED_PIN, GRB > (leds, NUM_LEDS);
   FastLED.setBrightness(255); // this brightness will be overridden by makeNoise function
+
+  Serial.println("Hello Lamp");
+  Serial.print("Brightness is set to: ");
+  Serial.println(CurrentBri);
+
+  Serial.println("Setup Complete");
+  Serial.println("");
 
   // btn.attachClick(paletteButton);
   }
@@ -141,24 +147,23 @@ void loop() {
   blendColors( speed1, speed2 );
 
   makeNoise();
-  //lightUpMiddleRows();
 
-  EVERY_N_SECONDS(10) {
+  EVERY_N_SECONDS(8) {
     if ( palRamp2.isFinished() == 1 && palette_changed == false ) {
 
-      // ############# JUST FOR TESTING!!!
-      base_hue1 = random(0, 255);
-      base_hue2 = base_hue1 + random(50, 205);
-      range = random(5, 20);
-      // #############
+        //############# JUST FOR TESTING!!!
+        base_hue1 = random(0, 255);
+        base_hue2 = base_hue1 + random(50, 205);
+        range = random(5, 20);
+        //#############
 
-      grant_blend = true;
-      speed1 = 2000;
-      speed2 = 2000;
+        grant_blend = true;
+        speed1 = 2000;
+        speed2 = 2000;
     }
   }
 
-  //moveRange( lowerRamp.update(), upperRamp.update(), 8 );
+  moveRange( lowerRamp.update(), upperRamp.update(), 8 );
   fadeToBlackBy(leds, NUM_LEDS, 128);
   
   FastLED.show();
@@ -173,8 +178,11 @@ void loop() {
 // slowly raises brightness during startup
 void startUp()
 {
-  if (start_up == false)
-  {
+  if (start_up == false) {
+    buildPalette();
+    for (uint8_t i = 0; i < 4; i++) {
+      col[i] = pal[i];
+    }
     briRamp.go(CurrentBri, 1000, LINEAR);
     lowerRamp.go(lower, 2000, LINEAR);
     upperRamp.go(upper, 2000, LINEAR);
@@ -184,9 +192,6 @@ void startUp()
 
 
 void makeNoise() {
-
-  // fill_raw_noise16into8   (uint8_t *pData, uint8_t num_points,     uint8_t octaves, uint32_t x, int scalex,                          uint32_t time)
-  // fill_raw_2dnoise16into8 (uint8_t *pData, int width, int height,  uint8_t octaves, uint32_t x, int scalex, uint32_t y, int scaley,  uint32_t time)
 
   timeVal = millis() * 25;
 
@@ -212,28 +217,35 @@ void makeNoise() {
     for(int y = 0; y < kMatrixHeight; y++) {
       
       leds[XY(x,y)] = 
-      ColorFromPalette( runPal, 
-                        noiseCols[(y * kMatrixWidth) + x],
-                        brighten8_raw(map8(noiseData[x][y], 0, CurrentBri))
-                        );
+      ColorFromPalette(runPal, 
+                       noiseCols[(y * kMatrixWidth) + x],
+                       brighten8_raw(map8(noiseData[x][y], 0, CurrentBri))
+                       );
 
     }
   }
+
+  // fill_raw_noise16into8   (uint8_t *pData, uint8_t num_points,     uint8_t octaves, uint32_t x, int scalex,                          uint32_t time)
+  // fill_raw_2dnoise16into8 (uint8_t *pData, int width, int height,  uint8_t octaves, uint32_t x, int scalex, uint32_t y, int scaley,  uint32_t time)
+
 }
 
 
-
+// Activates smooth blending to new brightness
 void brightnessButton() {
   switchBrightness = (switchBrightness + 1) % 3;
   briRamp.go(TargetBri, 750, CIRCULAR_INOUT);
 }
 
+// Activates smooth blending to new area
 void areaButton() {
   switchArea = (switchArea + 1) % 3;
   lowerRamp.go(lower, 750, CIRCULAR_INOUT);
   upperRamp.go(upper, 750, CIRCULAR_INOUT);
 }
 
+// Picks new colors, then triggers color blending and goes dark, 
+// to signal that the palette has been changed
 void paletteButton() {
   
   //if (new_hues == false) {

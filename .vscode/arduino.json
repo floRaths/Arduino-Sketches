@@ -1,0 +1,6 @@
+{
+    "sketch": "Lamps/Yasi_Rebuild/Yasi_Rebuild.ino",
+    "board": "arduino:avr:uno",
+    "programmer": "arduino:avrisp",
+    "port": "/dev/tty.usbmodem13201"
+}
