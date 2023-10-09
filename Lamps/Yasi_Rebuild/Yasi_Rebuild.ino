@@ -86,7 +86,7 @@ uint8_t stored_bri = 255; // ???
 
 // prameters for palette selection
 uint8_t base_hue1 = 20;  // first hue
-uint8_t base_hue2 = 20;  // second hue
+uint8_t base_hue2 = 140;  // second hue
 uint8_t range     = 10;      // fluctuation
 
 // parameter for moving the lit area
@@ -115,7 +115,7 @@ rampInt upperRamp; // smooth area blending 2
 
 uint32_t timeVal;
 
-uint8_t hurry = 5;
+uint8_t hurry = 10;
 
 // #############################################
 // ################## SETUP ####################
@@ -151,9 +151,9 @@ void loop() {
     if (palRamp2.isFinished() == 1 && palette_changed == false) {
 
         //############# JUST FOR TESTING!!!
-        base_hue1 = random(0, 255);
-        base_hue2 = base_hue1 + random(50, 205);
-        range = random(5, 20);
+        // base_hue1 = random(0, 255);
+        // base_hue2 = base_hue1 + random(50, 205);
+        // range = random(5, 20);
         //#############
 
         grant_blend = true;
@@ -198,9 +198,9 @@ void makeNoise() {
     kMatrixHeight,  // height 
     1,              // octaves 
     5000,           // x
-    5000,           // scalex 
+    500000,           // scalex 
     1000,           // y
-    5000,           // scaley
+    500000,           // scaley
     timeVal         // timeVal
     );
 
@@ -349,7 +349,7 @@ void paletteButton()
 
   base_hue1 = random(0, 255);
   base_hue2 = base_hue1 + random(50, 205);
-  range = random(5, 20);
+  range = random(5, 15);
 
   palette_changed = true;
   grant_blend = true;
