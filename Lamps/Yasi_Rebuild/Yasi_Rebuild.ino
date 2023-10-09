@@ -149,7 +149,7 @@ void loop() {
 
   makeNoise();
   
-  EVERY_N_SECONDS(3) {
+  EVERY_N_SECONDS(30) {
     if (palRamp2.isFinished() == 1 && palette_changed == false) {
 
         // ############# JUST FOR TESTING!!!
