@@ -9,6 +9,49 @@
 // Button Initialization
 OneButton btn = OneButton(BTN_PIN, true, true);
 
+// // Params for width and height
+// const uint8_t kMatrixWidth = 5;
+// const uint8_t kMatrixHeight = 23;
+// boolean flip = true;
+
+// const uint8_t XYTableSize = kMatrixWidth * kMatrixHeight;
+// uint8_t XYTable[XYTableSize];
+
+// #define NUM_LEDS (kMatrixWidth * kMatrixHeight)
+// CRGB leds[NUM_LEDS];
+
+// uint8_t LAST_VISIBLE_LED = NUM_LEDS - 1;
+// uint8_t XY(uint8_t x, uint8_t y)
+// {
+//   // any out of bounds address maps to the first hidden pixel
+//   if ((x >= kMatrixWidth) || (y >= kMatrixHeight))
+//   {
+//     return (LAST_VISIBLE_LED + 1);
+//   }
+
+//   uint8_t index = 0;
+//   for (uint8_t y = 0; y < kMatrixHeight; y++)
+//   {
+//     for (uint8_t x = 0; x < kMatrixWidth; x++)
+//     {
+
+//       if (flip == true)
+//       {
+//         XYTable[index] = kMatrixWidth * kMatrixHeight - index - 1;
+//       }
+//       else
+//       {
+//         XYTable[index] = y * kMatrixWidth + x;
+//       };
+
+//       index++;
+//     }
+//   }
+
+//   uint8_t i = (y * kMatrixWidth) + x;
+//   uint8_t j = XYTable[i];
+//   return j;
+// }
 
 // #############################################
 // Params for width and height
@@ -16,6 +59,7 @@ const uint8_t kMatrixWidth  = 8;
 const uint8_t kMatrixHeight = 13;
 
 boolean coil    = true;
+boolean hoopy   = false;
 boolean ser_col = true;
 
 #define NUM_LEDS (kMatrixWidth * kMatrixHeight)
@@ -30,33 +74,39 @@ uint8_t XY(uint8_t x, uint8_t y) {
   uint8_t i;
   
   if (coil == true) {
-    i = (y * kMatrixWidth) + x;
-    }  
+      i = (y * kMatrixWidth) + x;
+  }
 
   else {
     if (ser_col == true) {
       // Even columns, counting from top to bottom
       if (x % 2 == 0) { 
         i = x * kMatrixHeight + y;
-        }
+      }
       // Odd columns, counting from bottom to top
       else {
         i = x * kMatrixHeight + (kMatrixHeight - 1 - y);
-        }
+      }
     }
     // otherwise we operate on rows (Y values)
     else {
       // Even rows, counting from left to right
       if (y % 2 == 0) {
         i = y * kMatrixWidth + x;
-        }
+      }
       // Odd rows, counting from right to left
       else {
         i = y * kMatrixWidth + (kMatrixWidth - 1 - x);
         }
       }
-    }
-    return i;
+  }
+
+  // Optionally invert the index
+  if (hoopy == true) {
+    i = NUM_LEDS - 1 - i;
+  }
+
+  return i;
 }
 
 
@@ -87,7 +137,7 @@ uint8_t stored_bri = 255; // ???
 
 // prameters for palette selection
 uint8_t base_hue1 = 20;  // first hue
-uint8_t base_hue2 = 140;  // second hue
+uint8_t base_hue2 = 25;  // second hue
 uint8_t range     = 10;      // fluctuation
 
 // parameter for moving the lit area
@@ -123,7 +173,7 @@ uint32_t timeCols;
 int scalex;
 int scaley;
 
-uint8_t hurry = 10;
+uint8_t hurry = 8;
 
 // #############################################
 // ################## SETUP ####################
@@ -136,8 +186,8 @@ void setup() {
   FastLED.addLeds < WS2812B, LED_PIN, GRB > (leds, NUM_LEDS);
   FastLED.setBrightness(255); // this brightness will be overridden by makeNoise function
 
-  noiRamp1.go(7500, 10, BACK_INOUT);
-  noiRamp1.go(7500, 10, BACK_INOUT);
+  noiRamp1.go(10000, 10, BACK_INOUT);
+  noiRamp1.go(10000, 10, BACK_INOUT);
 
   Serial.println("Hello Lamp");
   Serial.print("Brightness is set to: ");
@@ -158,14 +208,16 @@ void loop() {
 
   makeNoise();
 
-  //EVERY_N_SECONDS(60){
-      //uint16_t target = random(5, 50) * 1000;
-      //Serial.println(target);
-      //noiRamp1.go(random(5, 30) * 1000, 25000, BACK_INOUT);
-      //noiRamp1.go(random(5, 30) * 1000, 50000, BACK_INOUT);
-  //}
+  EVERY_N_SECONDS(5){
+      // uint16_t target = random(5, 50) * 1000;
+      // Serial.println(target);
+      // noiRamp1.go(random(5, 30) * 1000, 25000, BACK_INOUT);
+      // noiRamp1.go(random(5, 30) * 1000, 50000, BACK_INOUT);
+      //areaButton();
+      }
 
-  EVERY_N_SECONDS(120) {
+  EVERY_N_SECONDS(30)
+  {
       if (palRamp2.isFinished() == 1 && palette_changed == false)
       {
 
@@ -351,12 +403,12 @@ void buttonSwitches() {
       upper = NUM_LEDS;
       break;
     case 1:
-      lower = 30;
-      upper = 60;
+      lower = 40;
+      upper = 30;
       break;
     case 2:
-      lower = 50;
-      upper = 70;
+      lower = 80;
+      upper = 100;
       break;
   }
 }
