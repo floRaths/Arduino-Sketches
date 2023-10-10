@@ -6,115 +6,20 @@
 #define LED_PIN 5
 #define BTN_PIN 7
 
-// Button Initialization
-OneButton btn = OneButton(BTN_PIN, true, true);
-
-// // Params for width and height
-// const uint8_t kMatrixWidth = 5;
-// const uint8_t kMatrixHeight = 23;
-// boolean flip = true;
-
-// const uint8_t XYTableSize = kMatrixWidth * kMatrixHeight;
-// uint8_t XYTable[XYTableSize];
-
-// #define NUM_LEDS (kMatrixWidth * kMatrixHeight)
-// CRGB leds[NUM_LEDS];
-
-// uint8_t LAST_VISIBLE_LED = NUM_LEDS - 1;
-// uint8_t XY(uint8_t x, uint8_t y)
-// {
-//   // any out of bounds address maps to the first hidden pixel
-//   if ((x >= kMatrixWidth) || (y >= kMatrixHeight))
-//   {
-//     return (LAST_VISIBLE_LED + 1);
-//   }
-
-//   uint8_t index = 0;
-//   for (uint8_t y = 0; y < kMatrixHeight; y++)
-//   {
-//     for (uint8_t x = 0; x < kMatrixWidth; x++)
-//     {
-
-//       if (flip == true)
-//       {
-//         XYTable[index] = kMatrixWidth * kMatrixHeight - index - 1;
-//       }
-//       else
-//       {
-//         XYTable[index] = y * kMatrixWidth + x;
-//       };
-
-//       index++;
-//     }
-//   }
-
-//   uint8_t i = (y * kMatrixWidth) + x;
-//   uint8_t j = XYTable[i];
-//   return j;
-// }
+// #############################################
+// ################## SETUP ####################
 
 // #############################################
 // Params for width and height
-const uint8_t kMatrixWidth  = 8;
+const uint8_t kMatrixWidth = 8;
 const uint8_t kMatrixHeight = 13;
 
 boolean coil    = true;
-boolean hoopy   = false;
+boolean flip    = false;
 boolean ser_col = true;
 
-#define NUM_LEDS (kMatrixWidth * kMatrixHeight)
+#define NUM_LEDS kMatrixWidth *kMatrixHeight
 CRGB leds[NUM_LEDS];
-
-uint8_t XY(uint8_t x, uint8_t y) {
-  // any out of bounds address maps to the first hidden pixel
-  if ((x >= kMatrixWidth) || (y >= kMatrixHeight)) {
-    return (NUM_LEDS);
-  }
-
-  uint8_t i;
-  
-  if (coil == true) {
-      i = (y * kMatrixWidth) + x;
-  }
-
-  else {
-    if (ser_col == true) {
-      // Even columns, counting from top to bottom
-      if (x % 2 == 0) { 
-        i = x * kMatrixHeight + y;
-      }
-      // Odd columns, counting from bottom to top
-      else {
-        i = x * kMatrixHeight + (kMatrixHeight - 1 - y);
-      }
-    }
-    // otherwise we operate on rows (Y values)
-    else {
-      // Even rows, counting from left to right
-      if (y % 2 == 0) {
-        i = y * kMatrixWidth + x;
-      }
-      // Odd rows, counting from right to left
-      else {
-        i = y * kMatrixWidth + (kMatrixWidth - 1 - x);
-        }
-      }
-  }
-
-  // Optionally invert the index
-  if (hoopy == true) {
-    i = NUM_LEDS - 1 - i;
-  }
-
-  return i;
-}
-
-
-
-// #############################################
-// two arrays holding the noise data for colors and luminosity
-uint8_t noiseCols[NUM_LEDS];
-uint8_t noiseData[kMatrixHeight][kMatrixHeight];
 
 // booleans for conditional execution
 boolean start_up = false; // allows a small startup sequence
@@ -130,30 +35,24 @@ uint8_t Bri1 = 255;
 uint8_t Bri2 = 255;
 uint8_t Bri3 = 255;
 
+// initial smoothing speeds set (0.5 seconds)
+int speed1;
+int speed2;
+
 // brightness parameter for smoothe bri changes
 uint8_t CurrentBri = 255; // this is the currently running brightness, called by the makenoise function
-uint8_t TargetBri  = 255;  // when the button is pressed, this is the new brightness to transition to
-uint8_t stored_bri = 255; // ???
 
-// prameters for palette selection
-uint8_t base_hue1 = 20;  // first hue
-uint8_t base_hue2 = 25;  // second hue
-uint8_t range     = 10;      // fluctuation
+// prameters for initial palette selection
+uint8_t base_hue1 = 0;    // first hue
+uint8_t base_hue2 = 170;  // second hue
+uint8_t range     = 10;   // fluctuation
 
 // parameter for moving the lit area
 int lower = 0;        // lower end of lights
 int upper = NUM_LEDS; // upper end of lights
 
-// initial smoothing speeds set (0.5 seconds)
-int speed1 = 500;
-int speed2 = 500;
-
-// arrays for holding colors and their values
-CRGB col[4];    // these are the currently used colors
-CRGB pal[4];    // these are colors of a new palette that we blend to
-uint8_t hue[4]; // used for selectng new palettes
-uint8_t sat[4];
-uint8_t bri[4];
+CRGB col[4]; // these are the currently used colors
+CRGB pal[4]; // these are colors of a new palette that we blend to
 
 // initializing smoothing function
 ramp briRamp; // brightness smoothing
@@ -161,19 +60,14 @@ ramp briRamp; // brightness smoothing
 ramp palRamp1; // smooth palette blending 1
 ramp palRamp2; // smooth palette blending 2
 
-rampInt noiRamp1; // smooth palette blending 1
-rampInt noiRamp2; // smooth palette blending 2
-
 rampInt lowerRamp; // smooth area blending 1
 rampInt upperRamp; // smooth area blending 2
 
-uint32_t timeLuma;
-uint32_t timeCols;
-
-int scalex;
-int scaley;
+rampInt noiRamp1; // smooth palette blending 1
+rampInt noiRamp2; // smooth palette blending 2
 
 uint8_t hurry = 8;
+
 
 // #############################################
 // ################## SETUP ####################
@@ -198,6 +92,7 @@ void setup() {
   // btn.attachClick(paletteButton);
   }
 
+
 // #############################################
 // ################## LOOP #####################
 void loop() {
@@ -208,7 +103,7 @@ void loop() {
 
   makeNoise();
 
-  EVERY_N_SECONDS(5){
+  EVERY_N_SECONDS(2){
       // uint16_t target = random(5, 50) * 1000;
       // Serial.println(target);
       // noiRamp1.go(random(5, 30) * 1000, 25000, BACK_INOUT);
@@ -221,11 +116,11 @@ void loop() {
       if (palRamp2.isFinished() == 1 && palette_changed == false)
       {
 
-        // ############# JUST FOR TESTING!!!
-        base_hue1 = random(0, 255);
-        base_hue2 = base_hue1 + random(50, 205);
-        range = random(5, 20);
-        // #############
+        // // ############# JUST FOR TESTING!!!
+        // base_hue1 = random(0, 255);
+        // base_hue2 = base_hue1 + random(50, 205);
+        // range = random(5, 20);
+        // // #############
 
         grant_blend = true;
         speed1 = 10000;
@@ -243,6 +138,7 @@ void loop() {
   //btn.tick();
 }
 
+
 // #############################################
 // ############## FUNCTIONS ####################
 
@@ -259,188 +155,4 @@ void startUp()
     upperRamp.go(upper, 2000, LINEAR);
     start_up = true;
   }
-}
-
-void makeNoise() {
-
-  timeLuma = millis() * hurry;
-  timeCols = millis() * hurry / 2;
-
-  memset(noiseData, 0, NUM_LEDS);
-  fill_raw_2dnoise16into8(
-      (uint8_t *)noiseData,
-      kMatrixHeight,     // width
-      kMatrixHeight,     // height
-      1,                 // octaves
-      5000,              // x
-      noiRamp1.update(), // scalex
-      1000,              // y
-      noiRamp2.update(), // scaley
-      timeLuma           // timeVal
-  );
-
-  memset(noiseCols, 0, NUM_LEDS);
-  fill_raw_noise16into8(noiseCols, NUM_LEDS, 1, 33000, 550, timeCols);
-
-  CRGBPalette16 runPal = CRGBPalette16(col[0], col[1], col[2], col[3]);
-
-  for(int x = 0; x < kMatrixWidth; x++) {
-    for(int y = 0; y < kMatrixHeight; y++) {
-
-      leds[XY(x, y)] =
-          ColorFromPalette(runPal,
-                           noiseCols[(y * kMatrixWidth) + x],
-                           brighten8_raw(map8(noiseData[x][y], 0, CurrentBri)));
-                           //noiseData[x][y],
-                           //brighten8_raw(map8(noiseCols[(y * kMatrixWidth) + x], 0, CurrentBri)));
-    }
-  }
-}
-
-// randomly creates a new 4-color palette based on two main hues
-// the general logic of random selection is used for hue, sat, bri for each color
-void buildPalette()
-{
-
-  hue[0] = random(base_hue1 - range, base_hue1 + range); // pick hue of first color with allowance of 'range'
-  hue[1] = random(base_hue2 - range, base_hue2 + range); // pick hue of second color with allowance of 'range'
-  hue[2] = hue[0] + random(0, 20);                       // pick hue of third color, which can be up to 20-clicks different from first
-  hue[3] = hue[1] + random(0, 20);                       // pick hue of fourth color, which can be up to 20-clicks different from second
-
-  sat[0] = random(170, 255);       // pick saturation for first color
-  sat[1] = random(170, 255);       // pick saturation for second color
-  sat[2] = sat[0] + random(0, 20); // same logic as for hues above
-  sat[3] = sat[1] + random(0, 20); // same logic as for hues above
-
-  bri[0] = random(240, 255); // same logic as for hues and sat above
-  bri[1] = random(240, 255);
-  bri[2] = bri[0] - random(0, 30);
-  bri[3] = bri[1] - random(0, 30);
-
-  // after selecting our 12 color components, we store the results in the palette
-  for (uint8_t i = 0; i < 4; i++)
-  {
-    pal[i] = CHSV(hue[i], sat[i], bri[i]);
-  }
-}
-
-// when a new palette is requested, the old colors are blended towards that new state
-void blendColors( int ramp1_speed, int ramp2_speed ) {
-
-  // grant_blend is false until paletteButton is pressed or after x seconds have passed
-  if (grant_blend == true) {
-    
-    // creating a new palette
-    buildPalette();
-
-    grant_blend = false; // deactivate grant_blend
-    new_colors  = true;  // allows blending of old colors to new colors
-
-    // start smoothly blending colors
-    palRamp1.go(255, ramp1_speed, QUINTIC_IN);
-    palRamp2.go(255, ramp2_speed, QUINTIC_IN);
-  }
-
-  if ( new_colors == true ) {
-
-    // with above smoothing active, the colors are blended to the new palette
-    col[0] = nblend(col[0], pal[0], palRamp1.update());
-    col[1] = nblend(col[1], pal[1], palRamp2.update());
-    col[2] = nblend(col[2], pal[2], palRamp1.update());
-    col[3] = nblend(col[3], pal[3], palRamp2.update());
-
-    // after the slower ramp is done, we terminate the color blending and re-set the used ramps
-    if (palRamp2.isFinished() == 1) {
-      new_colors = false;
-      palRamp1.go(0, 0, NONE);
-      palRamp2.go(0, 0, NONE);
-    }
-
-    // After a palette change was called, this chunk finalizes the change and 
-    // returns the brightness back to where it was (because the palette change dips to black)
-    if (palRamp2.isFinished() == 1 & palette_changed == true) {
-      palette_changed == false;
-      briRamp.go(stored_bri, 500, LINEAR);
-    }
-  }
-}
-
-void moveRange( uint8_t lower, uint8_t upper, uint8_t steps ) {  
-  
-  for(int i = upper; i < NUM_LEDS; i++) {
-
-    int value = (255 / steps) * (i - upper);
-    if (value >= 255) value = 255;
-    leds[i].subtractFromRGB(value);
-  }
-
-  for(int k = lower; k > -1; k--) {
-
-    int value = (255 / steps) * (lower - k);
-    if (value >= 255) value = 255;
-    leds[k].subtractFromRGB(value);
-  }
-}
-
-void buttonSwitches() {
-  
-  CurrentBri = briRamp.update();
-  switch (switchBrightness) {
-    case 0:
-      TargetBri = Bri1;
-      break;
-    case 1:
-      TargetBri = Bri2;
-      break;
-    case 2:
-      TargetBri = Bri3;
-      break;
-  }
-
-  switch (switchArea) {
-    case 0:
-      lower = 0;
-      upper = NUM_LEDS;
-      break;
-    case 1:
-      lower = 40;
-      upper = 30;
-      break;
-    case 2:
-      lower = 80;
-      upper = 100;
-      break;
-  }
-}
-
-// Picks new colors, then triggers color blending and goes dark,
-// to signal that the palette has been changed
-void paletteButton()
-{
-
-  base_hue1 = random(0, 255);
-  base_hue2 = base_hue1 + random(50, 205);
-  range = random(5, 15);
-
-  palette_changed = true;
-  grant_blend = true;
-  speed1 = 2000;
-  speed2 = 2000;
-  stored_bri = CurrentBri;
-  briRamp.go(0, 50, LINEAR);
-}
-
-// Activates smooth blending to new brightness
-void brightnessButton()
-{
-  switchBrightness = (switchBrightness + 1) % 3;
-  briRamp.go(TargetBri, 750, CIRCULAR_INOUT);
-}
-
-// Activates smooth blending to new area
-void areaButton()
-{
-  switchArea = (switchArea + 1) % 3;
-  lowerRamp.go(lower, 750, CIRCULAR_INOUT);
-  upperRamp.go(upper, 750, CIRCULAR_INOUT);
 }
