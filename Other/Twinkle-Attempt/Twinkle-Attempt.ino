@@ -110,7 +110,7 @@ ramp briRamp; // brightness smoothing
 ramp palRamp1; // smooth palette blending 1
 ramp palRamp2; // smooth palette blending 2
 
-ramp brightnessRamps[20];
+rampInt brightnessRamps[NUM_LEDS];
 
 rampInt lowerRamp; // smooth area blending 1
 rampInt upperRamp; // smooth area blending 2
@@ -118,6 +118,8 @@ rampInt upperRamp; // smooth area blending 2
 uint32_t timeVal;
 
 const unsigned long twinkleDelay = 1000;
+
+CRGBPalette16 myPalette;
 
 // #############################################
 // ################## SETUP ####################
@@ -128,16 +130,9 @@ void setup() {
   randomSeed(analogRead(0));
 
   FastLED.addLeds < WS2812B, LED_PIN, GRB > (leds, NUM_LEDS);
-  FastLED.setBrightness(255); // this brightness will be overridden by makeNoise function
-
-  Serial.println("Hello Lamp");
-  Serial.print("Brightness is set to: ");
-  Serial.println(CurrentBri);
-
-  Serial.println("Setup Complete");
-  Serial.println("");
-
-  // btn.attachClick(paletteButton);
+  FastLED.setBrightness(100); // this brightness will be overridden by makeNoise function
+  
+  myPalette = HeatColors_p;
   }
 
 // #############################################
@@ -146,9 +141,10 @@ void loop() {
 
   
   //makeNoise();
+  fillMatrixWithPalette();
   twinkle();
 
-      EVERY_N_SECONDS(8)
+  EVERY_N_SECONDS(8)
   {
       if (palRamp2.isFinished() == 1 && palette_changed == false)
       {
@@ -176,10 +172,28 @@ void loop() {
 // #############################################
 // ############## FUNCTIONS ####################
 
+void fillMatrixWithPalette()
+{
+  for (uint8_t y = 0; y < kMatrixHeight; y++)
+  {
+    for (uint8_t x = 0; x < kMatrixWidth; x++)
+    {
+        uint8_t index = XY(x, y);
+
+        // Fill the LED at (x, y) with color from the palette
+        leds[index] = ColorFromPalette(myPalette, map(x, 0, kMatrixWidth - 1, 0, 150));
+    }
+  }
+
+  // Show the changes on the LED matrix
+  FastLED.show();
+}
+
 void twinkle()
 {
   // Number of LEDs to twinkle
-  const uint8_t numTwinklingLEDs = 5; // Adjust this to your preference
+  const uint8_t numTwinklingLEDs = 5;          // Adjust this to your preference
+  const unsigned long twinklingDuration = 200; // Duration in milliseconds
 
   for (uint8_t i = 0; i < numTwinklingLEDs; i++)
   {
@@ -188,26 +202,16 @@ void twinkle()
     uint8_t y = random(kMatrixHeight);
     uint8_t index = XY(x, y);
 
-    // Initialize the brightness ramp for this LED
-    brightnessRamps[i].go(100, 10);
-    //brightnessRamps[index].setDuration(random(1000, 2000)); // Adjust the duration as needed
-    //brightnessRamps[index].setDest(random(50, 255));        // Adjust the range as needed
+    // Set the LED to a bright color
+    leds[index] = CRGB::White; // You can use any color you like
 
-    while (brightnessRamps[i].isRunning() == true)
-    {
-        // Interpolate brightness using the Ramp library
-        uint8_t brightness = brightnessRamps[index].update();
+    // Show the changes on the LED matrix
+    FastLED.show();
 
-        // Set the LED to the interpolated brightness
-        leds[index] = CRGB::White; // You can use any color you like
-        //leds[index].fadeToBlackBy(255 - brightness);
-        leds[index].subtractFromRGB(brightness);
+    // Delay to keep the LED brightened for a short duration
+    delay(twinklingDuration);
 
-        // Show the changes on the LED matrix
-        // FastLED.show();
-    }
+    // Set the LED back to the original color from the palette
+    leds[index] = ColorFromPalette(myPalette, map(x, 0, kMatrixWidth - 1, 0, 255));
   }
 }
-
-
-

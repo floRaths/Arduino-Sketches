@@ -81,7 +81,7 @@ uint8_t Bri2 = 255;
 uint8_t Bri3 = 255;
 
 // brightness parameter for smoothe bri changes
-uint8_t CurrentBri = 75; // this is the currently running brightness, called by the makenoise function
+uint8_t CurrentBri = 255; // this is the currently running brightness, called by the makenoise function
 uint8_t TargetBri  = 255;  // when the button is pressed, this is the new brightness to transition to
 uint8_t stored_bri = 255; // ???
 
@@ -111,24 +111,33 @@ ramp briRamp; // brightness smoothing
 ramp palRamp1; // smooth palette blending 1
 ramp palRamp2; // smooth palette blending 2
 
+rampInt noiRamp1; // smooth palette blending 1
+rampInt noiRamp2; // smooth palette blending 2
+
 rampInt lowerRamp; // smooth area blending 1
 rampInt upperRamp; // smooth area blending 2
 
 uint32_t timeLuma;
 uint32_t timeCols;
 
-uint8_t hurry = 15;
+int scalex;
+int scaley;
+
+uint8_t hurry = 10;
 
 // #############################################
 // ################## SETUP ####################
 void setup() {
 
-  delay(1); // startup safety delay
+  delay(250); // startup safety delay
   Serial.begin(115200);
   randomSeed(analogRead(0));
 
   FastLED.addLeds < WS2812B, LED_PIN, GRB > (leds, NUM_LEDS);
   FastLED.setBrightness(255); // this brightness will be overridden by makeNoise function
+
+  noiRamp1.go(7500, 10, BACK_INOUT);
+  noiRamp1.go(7500, 10, BACK_INOUT);
 
   Serial.println("Hello Lamp");
   Serial.print("Brightness is set to: ");
@@ -148,9 +157,18 @@ void loop() {
   blendColors( speed1, speed2 );
 
   makeNoise();
-  
-  EVERY_N_SECONDS(30) {
-    if (palRamp2.isFinished() == 1 && palette_changed == false) {
+
+  //EVERY_N_SECONDS(60){
+      //uint16_t target = random(5, 50) * 1000;
+      //Serial.println(target);
+      //noiRamp1.go(random(5, 30) * 1000, 25000, BACK_INOUT);
+      //noiRamp1.go(random(5, 30) * 1000, 50000, BACK_INOUT);
+  //}
+
+  EVERY_N_SECONDS(30)
+  {
+      if (palRamp2.isFinished() == 1 && palette_changed == false)
+      {
 
         // ############# JUST FOR TESTING!!!
         base_hue1 = random(0, 255);
@@ -199,15 +217,15 @@ void makeNoise() {
 
   memset(noiseData, 0, NUM_LEDS);
   fill_raw_2dnoise16into8(
-    (uint8_t *)noiseData,
-    kMatrixHeight, // width
-    kMatrixHeight, // height
-    1,             // octaves
-    5000,          // x
-    50000,       // scalex
-    1000,          // y
-    50000,       // scaley
-    timeLuma       // timeVal
+      (uint8_t *)noiseData,
+      kMatrixHeight,     // width
+      kMatrixHeight,     // height
+      1,                 // octaves
+      5000,              // x
+      noiRamp1.update(), // scalex
+      1000,              // y
+      noiRamp2.update(), // scaley
+      timeLuma           // timeVal
   );
 
   memset(noiseCols, 0, NUM_LEDS);
@@ -217,19 +235,15 @@ void makeNoise() {
 
   for(int x = 0; x < kMatrixWidth; x++) {
     for(int y = 0; y < kMatrixHeight; y++) {
-      
-      leds[XY(x,y)] = 
-      ColorFromPalette(runPal, 
-                       noiseCols[(y * kMatrixWidth) + x],
-                       brighten8_raw(map8(noiseData[x][y], 0, CurrentBri))
-                       );
 
+      leds[XY(x, y)] =
+          ColorFromPalette(runPal,
+                           noiseCols[(y * kMatrixWidth) + x],
+                           brighten8_raw(map8(noiseData[x][y], 0, CurrentBri)));
+                           //noiseData[x][y],
+                           //brighten8_raw(map8(noiseCols[(y * kMatrixWidth) + x], 0, CurrentBri)));
     }
   }
-
-  // fill_raw_noise16into8   (uint8_t *pData, uint8_t num_points,     uint8_t octaves, uint32_t x, int scalex,                          uint32_t time)
-  // fill_raw_2dnoise16into8 (uint8_t *pData, int width, int height,  uint8_t octaves, uint32_t x, int scalex, uint32_t y, int scaley,  uint32_t time)
-
 }
 
 // randomly creates a new 4-color palette based on two main hues
