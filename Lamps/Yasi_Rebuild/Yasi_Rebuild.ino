@@ -165,8 +165,7 @@ void loop() {
       //noiRamp1.go(random(5, 30) * 1000, 50000, BACK_INOUT);
   //}
 
-  EVERY_N_SECONDS(30)
-  {
+  EVERY_N_SECONDS(120) {
       if (palRamp2.isFinished() == 1 && palette_changed == false)
       {
 
@@ -177,8 +176,8 @@ void loop() {
         // #############
 
         grant_blend = true;
-        speed1 = 5000;
-        speed2 = 2500;
+        speed1 = 10000;
+        speed2 = 22000;
 
         // Serial.print("Color 1 hue = ");
         // Serial.println(hue[0]);
