@@ -43,8 +43,8 @@ int speed2;
 uint8_t CurrentBri = 255; // this is the currently running brightness, called by the makenoise function
 
 // prameters for initial palette selection
-uint8_t base_hue1 = 0;    // first hue
-uint8_t base_hue2 = 170;  // second hue
+uint8_t base_hue1 = 20;    // first hue
+uint8_t base_hue2 = 130;  // second hue
 uint8_t range     = 10;   // fluctuation
 
 // parameter for moving the lit area
@@ -67,13 +67,13 @@ rampInt noiRamp1; // smooth palette blending 1
 rampInt noiRamp2; // smooth palette blending 2
 
 uint8_t hurry = 8;
-
+uint8_t coin;
 
 // #############################################
 // ################## SETUP ####################
 void setup() {
 
-  delay(250); // startup safety delay
+  delay(2); // startup safety delay
   Serial.begin(115200);
   randomSeed(analogRead(0));
 
@@ -103,31 +103,39 @@ void loop() {
 
   makeNoise();
 
-  EVERY_N_SECONDS(2){
-      // uint16_t target = random(5, 50) * 1000;
-      // Serial.println(target);
-      // noiRamp1.go(random(5, 30) * 1000, 25000, BACK_INOUT);
-      // noiRamp1.go(random(5, 30) * 1000, 50000, BACK_INOUT);
-      //areaButton();
-      }
+  EVERY_N_SECONDS(30)
+  {
+    coin = random(10);
+    if ((coin % 2) == 0)
+    {
+      noiRamp1.go(random16(6500, 30000), 20000, BACK_INOUT);
+    }
+    // areaButton();
+  }
+
+  EVERY_N_SECONDS(50)
+  {
+    coin = random(10);
+    if ((coin % 2) == 0)
+    {
+      noiRamp2.go(random16(6500, 30000), 35000, BACK_INOUT);
+    }
+    // areaButton();
+  }
 
   EVERY_N_SECONDS(30)
   {
       if (palRamp2.isFinished() == 1 && palette_changed == false)
       {
-
-        // // ############# JUST FOR TESTING!!!
-        // base_hue1 = random(0, 255);
-        // base_hue2 = base_hue1 + random(50, 205);
-        // range = random(5, 20);
-        // // #############
+        // ############# JUST FOR TESTING!!!
+        base_hue1 = random(0, 255);
+        base_hue2 = base_hue1 + random(50, 205);
+        range = random(5, 20);
+        // #############
 
         grant_blend = true;
         speed1 = 10000;
         speed2 = 22000;
-
-        // Serial.print("Color 1 hue = ");
-        // Serial.println(hue[0]);
     }
   }
 

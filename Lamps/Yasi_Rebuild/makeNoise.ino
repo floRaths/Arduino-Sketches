@@ -13,6 +13,9 @@ void makeNoise()
     timeLuma = millis() * hurry;
     timeCols = millis() * hurry / 2;
 
+    scalex = noiRamp1.update();
+    scaley = noiRamp2.update();
+
     memset(noiseData, 0, NUM_LEDS);
     fill_raw_2dnoise16into8(
         (uint8_t *)noiseData,
@@ -27,7 +30,13 @@ void makeNoise()
     );
 
     memset(noiseCols, 0, NUM_LEDS);
-    fill_raw_noise16into8(noiseCols, NUM_LEDS, 1, 33000, 550, timeCols);
+    fill_raw_noise16into8(
+        noiseCols,
+        NUM_LEDS,
+        1,            // octaves
+        33000,        //  x - don't mess with this one
+        NUM_LEDS * 6, // scale
+        timeCols);
 
     CRGBPalette16 runPal = CRGBPalette16(col[0], col[1], col[2], col[3]);
 
