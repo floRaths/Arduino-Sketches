@@ -7,11 +7,22 @@ uint8_t bri[4];
 // the general logic of random selection is used for hue, sat, bri for each color
 void buildPalette()
 {
+    // coin = random(10);
+    // if ((coin % 2) == 0)
+    // {
+    //     hue[0] = random(base_hue1 - range, base_hue1 + range); // pick hue of first color with allowance of 'range'
+    // }
+
+    // coin = random(10);
+    // if ((coin % 2) == 0)
+    // {
+    //     hue[1] = random(base_hue2 - range, base_hue2 + range); // pick hue of second color with allowance of 'range'
+    // }
 
     hue[0] = random(base_hue1 - range, base_hue1 + range); // pick hue of first color with allowance of 'range'
     hue[1] = random(base_hue2 - range, base_hue2 + range); // pick hue of second color with allowance of 'range'
-    hue[2] = hue[0] + random(0, 20);                       // pick hue of third color, which can be up to 20-clicks different from first
-    hue[3] = hue[1] + random(0, 20);                       // pick hue of fourth color, which can be up to 20-clicks different from second
+    hue[2] = hue[0] + random(0, 20);
+    hue[3] = hue[1] + random(0, 20); // pick hue of fourth color, which can be up to 20-clicks different from second
 
     sat[0] = random(170, 255);       // pick saturation for first color
     sat[1] = random(170, 255);       // pick saturation for second color

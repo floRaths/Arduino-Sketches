@@ -1,5 +1,4 @@
-// Button Initialization
-OneButton btn = OneButton(BTN_PIN, true, true);
+
 
 uint8_t stored_bri;
 uint8_t TargetBri; // when the button is pressed, this is the new brightness to transition to
@@ -28,12 +27,12 @@ void buttonSwitches()
         upper = NUM_LEDS;
         break;
     case 1:
-        lower = 40;
-        upper = 30;
+        lower = 0;
+        upper = NUM_LEDS;
         break;
     case 2:
-        lower = 80;
-        upper = 100;
+        lower = 85;
+        upper = NUM_LEDS;
         break;
     }
 }
@@ -59,7 +58,7 @@ void paletteButton()
 void brightnessButton()
 {
     switchBrightness = (switchBrightness + 1) % 3;
-    briRamp.go(TargetBri, 750, CIRCULAR_INOUT);
+    briRamp.go(TargetBri, 1000, CIRCULAR_INOUT);
 }
 
 // Activates smooth blending to new area
@@ -68,4 +67,16 @@ void areaButton()
     switchArea = (switchArea + 1) % 3;
     lowerRamp.go(lower, 750, CIRCULAR_INOUT);
     upperRamp.go(upper, 750, CIRCULAR_INOUT);
+}
+
+void brightnessAreaButton()
+{
+    switchBrightness = (switchBrightness + 1) % 3;
+    Serial.print("Brightness set to: ");
+    Serial.println(TargetBri);
+    briRamp.go(TargetBri, 1000, CIRCULAR_INOUT);
+
+    switchArea = (switchArea + 1) % 3;
+    lowerRamp.go(lower, 1000, CIRCULAR_INOUT);
+    upperRamp.go(upper, 1000, CIRCULAR_INOUT);
 }

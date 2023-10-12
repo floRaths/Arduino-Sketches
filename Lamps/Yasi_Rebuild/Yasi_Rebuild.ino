@@ -6,6 +6,9 @@
 #define LED_PIN 5
 #define BTN_PIN 7
 
+// Button Initialization
+OneButton btn = OneButton(BTN_PIN, true, true);
+
 // #############################################
 // ################## SETUP ####################
 
@@ -27,25 +30,27 @@ boolean palette_changed = false;
 boolean grant_blend = false;
 boolean new_colors = false;
 
-uint8_t switchBrightness = 0;
-uint8_t switchArea = 2;
+uint8_t paletteIndex = 0;
+
+uint8_t switchBrightness;
+uint8_t switchArea;
 
 // three brightness values to choose via button
 uint8_t Bri1 = 255;
-uint8_t Bri2 = 255;
-uint8_t Bri3 = 255;
+uint8_t Bri2 = 75;
+uint8_t Bri3 = 75;
+
+// brightness parameter for smoothe bri changes
+uint8_t CurrentBri = Bri1; // this is the currently running brightness, called by the makenoise function
 
 // initial smoothing speeds set (0.5 seconds)
 int speed1;
 int speed2;
 
-// brightness parameter for smoothe bri changes
-uint8_t CurrentBri = 255; // this is the currently running brightness, called by the makenoise function
-
 // prameters for initial palette selection
-uint8_t base_hue1 = 20;    // first hue
-uint8_t base_hue2 = 130;  // second hue
-uint8_t range     = 10;   // fluctuation
+uint8_t base_hue1 = 20;   // first hue
+uint8_t base_hue2 = 130;   // second hue
+uint8_t range     = 5;   // fluctuation
 
 // parameter for moving the lit area
 int lower = 0;        // lower end of lights
@@ -63,10 +68,12 @@ ramp palRamp2; // smooth palette blending 2
 rampInt lowerRamp; // smooth area blending 1
 rampInt upperRamp; // smooth area blending 2
 
-rampInt noiRamp1; // smooth palette blending 1
-rampInt noiRamp2; // smooth palette blending 2
+rampInt lumRampX; // smooth palette blending 1
+rampInt lumRampY; // smooth palette blending 2
+rampInt colRampX; // smooth palette blending 1
+rampInt colRampY; // smooth palette blending 2
 
-uint8_t hurry = 8;
+uint8_t hurry = 10;
 uint8_t coin;
 
 // #############################################
@@ -80,8 +87,10 @@ void setup() {
   FastLED.addLeds < WS2812B, LED_PIN, GRB > (leds, NUM_LEDS);
   FastLED.setBrightness(255); // this brightness will be overridden by makeNoise function
 
-  noiRamp1.go(10000, 10, BACK_INOUT);
-  noiRamp1.go(10000, 10, BACK_INOUT);
+  lumRampX.go(10000, 10, BACK_INOUT);     // when X is low and Y high = banding over height
+  lumRampY.go(10000, 10, BACK_INOUT);     // when Y is low and X high = banding over width
+  colRampX.go(5000, 10, BACK_INOUT);
+  colRampY.go(5000, 10, BACK_INOUT);
 
   Serial.println("Hello Lamp");
   Serial.print("Brightness is set to: ");
@@ -90,6 +99,9 @@ void setup() {
   Serial.println("");
 
   // btn.attachClick(paletteButton);
+  btn.attachClick(brightnessAreaButton);
+  btn.attachLongPressStart(paletteButton);
+  btn.setPressMs(250);
   }
 
 
@@ -103,14 +115,9 @@ void loop() {
 
   makeNoise();
 
-  EVERY_N_SECONDS(30)
+  EVERY_N_MILLISECONDS(200)
   {
-    coin = random(10);
-    if ((coin % 2) == 0)
-    {
-      noiRamp1.go(random16(6500, 30000), 20000, BACK_INOUT);
-    }
-    // areaButton();
+    paletteIndex++;
   }
 
   EVERY_N_SECONDS(50)
@@ -118,7 +125,17 @@ void loop() {
     coin = random(10);
     if ((coin % 2) == 0)
     {
-      noiRamp2.go(random16(6500, 30000), 35000, BACK_INOUT);
+      lumRampX.go(random16(6500, 30000), 25000, BACK_INOUT);
+    }
+    // areaButton();
+  }
+
+  EVERY_N_SECONDS(77)
+  {
+    coin = random(10);
+    if ((coin % 2) == 0)
+    {
+      lumRampY.go(random16(6500, 30000), 35000, BACK_INOUT);
     }
     // areaButton();
   }
@@ -129,7 +146,8 @@ void loop() {
       {
         // ############# JUST FOR TESTING!!!
         base_hue1 = random(0, 255);
-        base_hue2 = base_hue1 + random(50, 205);
+        // base_hue2 = base_hue1 + random(50, 205);
+        base_hue2 = random(0, 255);
         range = random(5, 20);
         // #############
 
@@ -139,11 +157,11 @@ void loop() {
     }
   }
 
-  moveRange( lowerRamp.update(), upperRamp.update(), 8 );
+  moveRange(lowerRamp.update(), upperRamp.update(), 8 );
   fadeToBlackBy(leds, NUM_LEDS, 128);
   
   FastLED.show();
-  //btn.tick();
+  btn.tick();
 }
 
 
@@ -154,7 +172,9 @@ void loop() {
 void startUp()
 {
   if (start_up == false) {
+    brightnessAreaButton();
     buildPalette();
+
     for (uint8_t i = 0; i < 4; i++) {
       col[i] = pal[i];
     }
