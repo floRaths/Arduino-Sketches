@@ -1,4 +1,6 @@
 
+uint8_t switchBrightness;
+uint8_t switchArea;
 
 uint8_t stored_bri;
 uint8_t TargetBri; // when the button is pressed, this is the new brightness to transition to
@@ -23,16 +25,16 @@ void buttonSwitches()
     switch (switchArea)
     {
     case 0:
+        upper = NUM_LEDS - 5;
         lower = 0;
-        upper = NUM_LEDS;
         break;
     case 1:
+        upper = NUM_LEDS - 5;
         lower = 0;
-        upper = NUM_LEDS;
         break;
     case 2:
-        lower = 85;
-        upper = NUM_LEDS;
+        upper = 15;
+        lower = 0;
         break;
     }
 }
@@ -77,6 +79,6 @@ void brightnessAreaButton()
     briRamp.go(TargetBri, 1000, CIRCULAR_INOUT);
 
     switchArea = (switchArea + 1) % 3;
-    lowerRamp.go(lower, 1000, CIRCULAR_INOUT);
-    upperRamp.go(upper, 1000, CIRCULAR_INOUT);
+    lowerRamp.go(lower, 2000, CIRCULAR_INOUT);
+    upperRamp.go(upper, 2000, CIRCULAR_INOUT);
 }

@@ -5,6 +5,7 @@ uint8_t colNoise[kMatrixHeight][kMatrixHeight];
 uint32_t lumTime;
 uint32_t colTime;
 
+
 void makeNoise()
 {
     lumTime = millis() * hurry;
@@ -16,9 +17,9 @@ void makeNoise()
         kMatrixHeight,     // width
         kMatrixHeight,     // height
         1,                 // octaves
-        0,            // x
+        lumxVal,           // x
         lumRampX.update(), // scalex
-        0,            // y
+        lumyVal,           // y
         lumRampY.update(), // scaley
         lumTime            // timeVal
     );
@@ -29,9 +30,9 @@ void makeNoise()
         kMatrixHeight,     // width
         kMatrixHeight,     // height
         1,                 // octaves
-        0,            // x
+        colxVal,           // x
         colRampX.update(), // scalex
-        0,            // y
+        colyVal,           // y
         colRampY.update(), // scalex
         colTime            // timeVal
     );
