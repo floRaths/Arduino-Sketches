@@ -1,7 +1,7 @@
 #include <FastLED.h>
 
-#define NUM_LEDS  18
-#define LED_PIN   2
+#define NUM_LEDS  102
+#define LED_PIN   5
 
 CRGB leds[NUM_LEDS];
 
@@ -19,7 +19,7 @@ void loop() {
     leds[i] = CHSV(hue + (i * 10), 255, 255);
   }
 
-  EVERY_N_MILLISECONDS(15){
+  EVERY_N_MILLISECONDS(100){
     hue++;
   }
 

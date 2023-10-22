@@ -3,6 +3,8 @@ uint8_t hue[4]; // used for selectng new palettes
 uint8_t sat[4];
 uint8_t bri[4];
 
+uint8_t satt = 120;
+
 // randomly creates a new 4-color palette based on two main hues
 // the general logic of random selection is used for hue, sat, bri for each color
 void buildPalette()
@@ -24,10 +26,10 @@ void buildPalette()
     hue[2] = hue[0] + random(0, 20);
     hue[3] = hue[1] + random(0, 20); // pick hue of fourth color, which can be up to 20-clicks different from second
 
-    sat[0] = random(170, 255);       // pick saturation for first color
-    sat[1] = random(170, 255);       // pick saturation for second color
-    sat[2] = sat[0] + random(0, 20); // same logic as for hues above
-    sat[3] = sat[1] + random(0, 20); // same logic as for hues above
+    sat[0] = random(200, 255);       // pick saturation for first color
+    sat[1] = random(200, 255);       // pick saturation for second color
+    sat[2] = random(120, 255);       // sat[0] + random(0, 20); // same logic as for hues above
+    sat[3] = random(120, 255);       // sat[1] + random(0, 20); // same logic as for hues above
 
     bri[0] = random(240, 255); // same logic as for hues and sat above
     bri[1] = random(240, 255);
@@ -53,7 +55,7 @@ void blendColors(int ramp1_speed, int ramp2_speed)
         buildPalette();
 
         grant_blend = false; // deactivate grant_blend
-        new_colors = true;   // allows blending of old colors to new colors
+        new_colors  = true;   // allows blending of old colors to new colors
 
         // start smoothly blending colors
         palRamp1.go(255, ramp1_speed, QUINTIC_IN);
@@ -83,6 +85,7 @@ void blendColors(int ramp1_speed, int ramp2_speed)
         {
             palette_changed == false;
             briRamp.go(stored_bri, 500, LINEAR);
+            changeScales(4000);
         }
     }
 }

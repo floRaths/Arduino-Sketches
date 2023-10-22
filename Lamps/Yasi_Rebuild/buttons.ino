@@ -1,6 +1,8 @@
 
 uint8_t switchBrightness;
 uint8_t switchArea;
+uint8_t switchPalette;
+uint8_t switchPalette2;
 
 uint8_t stored_bri;
 uint8_t TargetBri; // when the button is pressed, this is the new brightness to transition to
@@ -22,19 +24,59 @@ void buttonSwitches()
         break;
     }
 
-    switch (switchArea)
+    switch (switchPalette)
     {
-    case 0:
-        upper = NUM_LEDS - 5;
-        lower = 0;
+    case 0: // side banded
+        noiRampMin[0] = random(5000, 10000);
+        noiRampMax[0] = random(10000, 50000);
+        noiRampMin[1] = 1;
+        noiRampMax[1] = 1;
         break;
-    case 1:
-        upper = NUM_LEDS - 5;
-        lower = 0;
+    case 1: // vertical banded
+        noiRampMin[0] = 1;
+        noiRampMax[0] = 1;
+        noiRampMin[1] = random(20000, 20000);
+        noiRampMax[1] = random(50000, 50000);
         break;
     case 2:
-        upper = 15;
-        lower = 0;
+        noiRampMin[0] = random(5000, 10000);
+        noiRampMax[0] = random(10000, 50000);
+        noiRampMin[1] = random(5000, 10000);
+        noiRampMax[1] = random(10000, 50000);
+        break;
+    case 3:
+        noiRampMin[0] = random(5000, 10000);
+        noiRampMax[0] = random(10000, 25000);
+        noiRampMin[1] = random(5000, 10000);
+        noiRampMax[1] = random(10000, 25000);
+        break;
+    }
+    
+    switch (switchPalette2)
+    {
+    case 0: // side banded
+        noiRampMin[2] = random(5000, 10000);
+        noiRampMax[2] = random(10000, 50000);
+        noiRampMin[3] = 1;
+        noiRampMax[3] = 1;
+        break;
+    case 1: // vertical banded
+        noiRampMin[2] = 1;
+        noiRampMax[2] = 1;
+        noiRampMin[3] = random(20000, 20000);
+        noiRampMax[3] = random(50000, 50000);
+        break;
+    case 2:
+        noiRampMin[2] = random(5000, 10000);
+        noiRampMax[2] = random(10000, 50000);
+        noiRampMin[3] = random(5000, 10000);
+        noiRampMax[3] = random(10000, 50000);
+        break;
+    case 3:
+        noiRampMin[2] = random(5000, 10000);
+        noiRampMax[2] = random(10000, 25000);
+        noiRampMin[3] = random(5000, 10000);
+        noiRampMax[3] = random(10000, 25000);
         break;
     }
 }
@@ -43,17 +85,18 @@ void buttonSwitches()
 // to signal that the palette has been changed
 void paletteButton()
 {
-
-    base_hue1 = random(0, 255);
-    base_hue2 = base_hue1 + random(50, 205);
+    switchPalette  = random(4);
+    switchPalette2 = random(4);
+    pickNewHues(60, 60, 30);
     range = random(5, 15);
 
     palette_changed = true;
     grant_blend = true;
-    speed1 = 2000;
-    speed2 = 2000;
+    speed1 = 500;
+    speed2 = 500;
     stored_bri = CurrentBri;
     briRamp.go(0, 50, LINEAR);
+    
 }
 
 // Activates smooth blending to new brightness
@@ -71,14 +114,12 @@ void areaButton()
     upperRamp.go(upper, 750, CIRCULAR_INOUT);
 }
 
-void brightnessAreaButton()
+void brightnessAreaButton(uint8_t brightness, int bri_speed, int lo_speed, int up_speed)
 {
     switchBrightness = (switchBrightness + 1) % 3;
-    Serial.print("Brightness set to: ");
-    Serial.println(TargetBri);
-    briRamp.go(TargetBri, 1000, CIRCULAR_INOUT);
+    briRamp.go(brightness, bri_speed, CIRCULAR_INOUT);
 
     switchArea = (switchArea + 1) % 3;
-    lowerRamp.go(lower, 2000, CIRCULAR_INOUT);
-    upperRamp.go(upper, 2000, CIRCULAR_INOUT);
+    lowerRamp.go(lower, lo_speed, CIRCULAR_INOUT);
+    upperRamp.go(upper, up_speed, CIRCULAR_INOUT);
 }

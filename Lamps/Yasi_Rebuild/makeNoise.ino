@@ -9,19 +9,19 @@ uint32_t colTime;
 void makeNoise()
 {
     lumTime = millis() * hurry;
-    colTime = millis() * hurry / 2;
+    colTime = millis() * hurry;
 
     memset(lumNoise, 0, NUM_LEDS);
     fill_raw_2dnoise16into8(
         (uint8_t *)lumNoise,
-        kMatrixHeight,     // width
-        kMatrixHeight,     // height
-        1,                 // octaves
-        lumxVal,           // x
-        lumRampX.update(), // scalex
-        lumyVal,           // y
-        lumRampY.update(), // scaley
-        lumTime            // timeVal
+        kMatrixHeight,            // width
+        kMatrixHeight,            // height
+        1,                        // octaves
+        xyVals[0],                // x
+        lumRampX.update(),        // scalex
+        xyVals[1],                // y
+        lumRampY.update(),        // scaley
+        lumTime // timeVal
     );
 
     memset(colNoise, 0, NUM_LEDS);
@@ -30,11 +30,11 @@ void makeNoise()
         kMatrixHeight,     // width
         kMatrixHeight,     // height
         1,                 // octaves
-        colxVal,           // x
+        xyVals[2],         // x
         colRampX.update(), // scalex
-        colyVal,           // y
+        xyVals[3],         // y
         colRampY.update(), // scalex
-        colTime            // timeVal
+        colTime    // timeVal
     );
 
     CRGBPalette16 runPal = CRGBPalette16(col[1], col[3], col[2], col[0]);

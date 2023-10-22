@@ -25,7 +25,7 @@ boolean ser_col = true;
 //boolean prototyping = false;
 
 // ################## config ###################
-uint8_t hurry = 10;
+uint8_t hurry = 6;
 
 // three brightness values to choose via button
 uint8_t Bri1 = 255;
@@ -33,8 +33,8 @@ uint8_t Bri2 = 75;
 uint8_t Bri3 = 75;
 
 // prameters for initial palette selection
-uint8_t base_hue1 = 20;  // first hue
-uint8_t base_hue2 = 130; // second hue
+uint8_t base_hue1 = 30;  // first hue
+uint8_t base_hue2 = 20; // second hue
 uint8_t range = 5;       // fluctuation
 
 // parameter for moving the lit area
@@ -49,92 +49,81 @@ boolean palette_changed = false;
 boolean grant_blend = false;
 boolean new_colors = false;
 
-uint8_t paletteIndex;
-uint8_t CurrentBri; // this is the currently running brightness, called by the makenoise function
-uint8_t coin;
-int speed1; // initial smoothing speeds set (0.5 seconds)
-int speed2;
-
-uint32_t lumxVal;
-uint32_t lumyVal;
-uint32_t colxVal;
-uint32_t colyVal;
+uint8_t paletteIndex, CurrentBri, coin;
+int speed1, speed2; // initial smoothing speeds set (0.5 seconds)
+uint32_t xyVals[4];
+int noiRampMin[4];
+int noiRampMax[4];
 
 CRGB col[4]; // these are the currently used colors
 CRGB pal[4]; // these are colors of a new palette that we blend to
 
 // initializing smoothing functions
-ramp briRamp; // brightness smoothing
-
-ramp palRamp1; // smooth palette blending 1
-ramp palRamp2; // smooth palette blending 2
-
-rampInt lowerRamp; // smooth area blending 1
-rampInt upperRamp; // smooth area blending 2
-
-rampInt lumRampX; // smooth luminance scale blending on X
-rampInt lumRampY; // smooth luminance scale blending on Y
-rampInt colRampX; // smooth color scale blending on X
-rampInt colRampY; // smooth color scale blending on Y
-
-int lumRampX_min = 8000;
-int lumRampX_max = 10000;
-int lumRampY_min = 8000;
-int lumRampY_max = 10000;
-
-int colRampX_min = 5000;
-int colRampX_max = 7000;
-int colRampY_min = 5000;
-int colRampY_max = 7000;
+ramp briRamp, palRamp1, palRamp2; // smooth palette blending 1
+rampInt lowerRamp, upperRamp; // smooth area blending 1
+rampInt lumRampX, lumRampY, colRampX, colRampY; // smooth luminance scale blending on X
+rampLong timeRamp;
 
 // #############################################
 // ################## SETUP ####################
 void setup() {
-
+  
   delay(200); // startup safety delay
   Serial.begin(115200);
   randomSeed(analogRead(0) * 100);
 
   FastLED.addLeds < WS2812B, LED_PIN, GRB > (leds, NUM_LEDS);
   FastLED.setBrightness(255); // this brightness will be overridden by makeNoise function
+  FastLED.setDither(0);
+
+  btn.attachClick(brightnessAreaButton);
+  btn.attachLongPressStart(paletteButton);
+  btn.setPressMs(250);
 
   CurrentBri = Bri1;
 
-  lumxVal = random(100000);
-  lumyVal = random(100000);
-  colxVal = random(100000);
-  colyVal = random(100000);
-
-  lumRampX.go(random(lumRampX_min, lumRampX_max), 10, BACK_INOUT); // when X is low and Y high = banding over height
-  lumRampY.go(random(lumRampY_min, lumRampY_max), 10, BACK_INOUT); // when Y is low and X high = banding over width
-  colRampX.go(random(colRampX_min, colRampX_max), 10, BACK_INOUT);
-  colRampY.go(random(colRampY_min, colRampY_max), 10, BACK_INOUT);
+  // random xy values for the noise field to ensure different starting points
+  for (int i = 0; i < 4; i++)
+  {
+    noiRampMin[i] = random(5000, 7000);
+    noiRampMax[i] = random(7000, 15000);
+    xyVals[i] = random(100000);
+  }
 
   Serial.println("Hello Lamp");
   Serial.print("Brightness is set to: ");
   Serial.println(CurrentBri);
   Serial.println("Setup Complete");
-  Serial.println("");
 
-  btn.attachClick(brightnessAreaButton);
-  btn.attachLongPressStart(paletteButton);
-  btn.setPressMs(250);
+  changeScales(5000);
+  
+  buildPalette();
+  for (uint8_t i = 0; i < 4; i++)
+  {
+    col[i] = pal[i];
   }
+  brightnessAreaButton(CurrentBri, 4500, 4000, 4000);
+  paletteButton();
 
+  //timeRamp.go(1000000, 100000, LINEAR);
+}
 
 // #############################################
 // ################## LOOP #####################
 void loop() {
 
-  startUp(); // startup function... runs only once
   buttonSwitches(); // control button activity
   blendColors( speed1, speed2 );
-  
+
   makeNoise();
+
+  // Serial.println(random_float(0.5, 1.5)); // Print with 4 decimal places
+  // delay(250);
 
   EVERY_N_MILLISECONDS(200)
   {
     paletteIndex++;
+    // Serial.println(timeRamp.update());
   }
 
   EVERY_N_SECONDS(50)
@@ -142,7 +131,7 @@ void loop() {
     coin = random(10);
     if ((coin % 2) == 0)
     {
-      lumRampX.go(random(lumRampX_min, lumRampX_max), 25000, BACK_INOUT);
+      //lumRampX.go(random(lumRampX_min, lumRampX_max), 25000, BACK_INOUT);
     }
   }
 
@@ -151,25 +140,21 @@ void loop() {
     coin = random(10);
     if ((coin % 2) == 0)
     {
-      lumRampY.go(random(lumRampY_min, lumRampY_max), 35000, BACK_INOUT);
+      //lumRampY.go(random(lumRampY_min, lumRampY_max), 35000, BACK_INOUT);
     }
   }
 
-  EVERY_N_SECONDS(30)
+  EVERY_N_SECONDS(20)
   {
-      if (palRamp2.isFinished() == 1 && palette_changed == false)
-      {
-        // ############# JUST FOR TESTING!!!
-        base_hue1 = random(0, 255);
-        // base_hue2 = base_hue1 + random(50, 205);
-        base_hue2 = random(0, 255);
-        range = random(5, 20);
-        // #############
+      // if (palRamp2.isFinished() == 1 && palette_changed == false)
+      // {
 
-        grant_blend = true;
-        speed1 = 10000;
-        speed2 = 22000;
-    }
+      // paletteButton();
+
+      // grant_blend = true;
+      // speed1 = 10000;
+      // speed2 = 10000;
+    //}
   }
 
   moveRange(lowerRamp.update(), upperRamp.update(), 8);
@@ -178,24 +163,3 @@ void loop() {
   btn.tick();
 }
 
-
-// #############################################
-// ############## FUNCTIONS ####################
-
-// slowly raises brightness during startup
-void startUp()
-{
-  if (start_up == false) {
-    brightnessAreaButton();
-    buildPalette();
-
-    for (uint8_t i = 0; i < 4; i++) {
-      col[i] = pal[i];
-    }
-
-    briRamp.go(CurrentBri, 1000, LINEAR);
-    //lowerRamp.go(lower, 2000, LINEAR);
-    //upperRamp.go(upper, 2000, LINEAR);
-    start_up = true;
-  }
-}
