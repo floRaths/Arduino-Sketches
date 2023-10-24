@@ -1,0 +1,43 @@
+// two arrays holding the noise data for colors and luminosity
+uint8_t lumNoise[kMatrixHeight][kMatrixHeight];
+
+uint32_t lumTime;
+uint32_t colTime;
+
+uint8_t lumDataSmoothing = 64; // You can adjust this value
+
+void makeNoise()
+{
+    lumTime = millis() * 2;
+
+    // Initialize temporary noise array
+    uint8_t tempLumNoise[kMatrixHeight][kMatrixHeight];
+
+    memset(lumNoise, 0, NUM_LEDS);
+    fill_raw_2dnoise16into8(
+        (uint8_t *)lumNoise,
+        kMatrixHeight, // width
+        kMatrixHeight, // height
+        1,             // octaves
+        1,             // x
+        5000,          // scalex
+        1,             // y
+        5000,          // scaley
+        lumTime        // timeVal
+    );
+
+    CRGBPalette16 runPal = CRGBPalette16(col[1], col[3], col[2], col[0]);
+
+    for (int x = 0; x < kMatrixWidth; x++)
+    {
+        for (int y = 0; y < kMatrixHeight; y++)
+        {
+            uint8_t newData = scale8(lumNoise[x][y], 256 - lumDataSmoothing) +
+                              scale8(tempLumNoise[x][y], lumDataSmoothing);
+            // Update lumNoise with the new value
+            lumNoise[x][y] = newData;
+            
+            leds[XY(x, y)] = ColorFromPalette(runPal, 100, lumNoise[x][y]);
+        }
+    }
+}

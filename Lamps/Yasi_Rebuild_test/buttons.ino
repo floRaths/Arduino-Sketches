@@ -9,6 +9,7 @@ uint8_t TargetBri; // when the button is pressed, this is the new brightness to 
 
 void buttonSwitches()
 {
+
     CurrentBri = briRamp.update();
     switch (switchBrightness)
     {
@@ -32,10 +33,10 @@ void buttonSwitches()
         noiRampMax[1] = 1;
         break;
     case 1: // vertical banded
-        noiRampMin[0] = random(5000, 10000);
-        noiRampMax[0] = random(10000, 50000);
-        noiRampMin[1] = random(5000, 10000);
-        noiRampMax[1] = random(10000, 50000);
+        noiRampMin[0] = 1;
+        noiRampMax[0] = 1;
+        noiRampMin[1] = random(20000, 20000);
+        noiRampMax[1] = random(50000, 50000);
         break;
     case 2:
         noiRampMin[0] = random(5000, 10000);
@@ -49,12 +50,6 @@ void buttonSwitches()
         noiRampMin[1] = random(5000, 10000);
         noiRampMax[1] = random(10000, 25000);
         break;
-    // case 1: // vertical banded
-    //     noiRampMin[0] = 1;
-    //     noiRampMax[0] = 1;
-    //     noiRampMin[1] = random(20000, 20000);
-    //     noiRampMax[1] = random(50000, 50000);
-    //     break;
     }
     
     switch (switchPalette2)
@@ -90,10 +85,10 @@ void buttonSwitches()
 // to signal that the palette has been changed
 void paletteButton()
 {
-    switchPalette  = random(4);
-    switchPalette2 = random(4);
-    pickNewHues(60, 60, 30);
-    range = random(5, 15);
+    switchPalette  = 0;//random(4);
+    switchPalette2 = 0;//random(4);
+    //pickNewHues(60, 60, 30);
+    //range = random(5, 15);
 
     palette_changed = true;
     grant_blend = true;

@@ -3,17 +3,25 @@ uint8_t hue[4]; // used for selectng new palettes
 uint8_t sat[4];
 uint8_t bri[4];
 
+uint8_t satt = 120;
+
 // randomly creates a new 4-color palette based on two main hues
 // the general logic of random selection is used for hue, sat, bri for each color
 void buildPalette()
 {
-    coin = random(10);
-    if ((coin % 2) == 0)
-    {
-        hue[0] = random(base_hue1 - range, base_hue1 + range); // pick hue of first color with allowance of 'range'
-    }
+    // coin = random(10);
+    // if ((coin % 2) == 0)
+    // {
+    //     hue[0] = random(base_hue1 - range, base_hue1 + range); // pick hue of first color with allowance of 'range'
+    // }
 
-    //hue[0] = random(base_hue1 - range, base_hue1 + range); // pick hue of first color with allowance of 'range'
+    // coin = random(10);
+    // if ((coin % 2) == 0)
+    // {
+    //     hue[1] = random(base_hue2 - range, base_hue2 + range); // pick hue of second color with allowance of 'range'
+    // }
+
+    hue[0] = random(base_hue1 - range, base_hue1 + range); // pick hue of first color with allowance of 'range'
     hue[1] = random(base_hue2 - range, base_hue2 + range); // pick hue of second color with allowance of 'range'
     hue[2] = hue[0] + random(0, 20);
     hue[3] = hue[1] + random(0, 20); // pick hue of fourth color, which can be up to 20-clicks different from second
@@ -43,7 +51,6 @@ void blendColors(int ramp1_speed, int ramp2_speed)
     if (grant_blend == true)
     {
 
-        Serial.println("Shuffling Colors");
         // creating a new palette
         buildPalette();
 
@@ -74,9 +81,9 @@ void blendColors(int ramp1_speed, int ramp2_speed)
 
         // After a palette change was called, this chunk finalizes the change and
         // returns the brightness back to where it was (because the palette change dips to black)
-        if (palRamp2.isFinished() == 1 && palette_changed == true)
+        if (palRamp2.isFinished() == 1 & palette_changed == true)
         {
-            palette_changed = false;
+            palette_changed == false;
             briRamp.go(stored_bri, 500, LINEAR);
             changeScales(4000);
         }
