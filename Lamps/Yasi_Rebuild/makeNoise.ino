@@ -40,7 +40,7 @@ void makeNoise()
         colTime            // timeVal
     );
 
-    CRGBPalette16 runPal = CRGBPalette16(col[1], col[3], col[2], col[0]);
+    CRGBPalette16 runPal = CRGBPalette16(col[0], col[1], col[2], col[3]);
 
     for (int x = 0; x < kMatrixWidth; x++)
     {

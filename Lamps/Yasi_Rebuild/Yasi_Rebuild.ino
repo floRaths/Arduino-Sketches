@@ -34,9 +34,9 @@ uint8_t Bri2 = 75;
 uint8_t Bri3 = 75;
 
 // prameters for initial palette selection
-uint8_t base_hue1 = 30;  // first hue
+uint8_t base_hue1 = 170;  // first hue
 uint8_t base_hue2 = 20; // second hue
-uint8_t range = 5;       // fluctuation
+uint8_t range = 50;       // fluctuation
 
 // parameter for moving the lit area
 uint16_t lower = 0;        // lower end of lights
@@ -45,9 +45,7 @@ uint16_t store;
 
 // ################## inits ###################
 // booleans for conditional execution
-boolean start_up = false; // allows a small startup sequence
 boolean palette_changed = false;
-boolean grant_blend = false;
 boolean new_colors = false;
 
 uint8_t paletteIndex, CurrentBri, coin;
@@ -68,7 +66,7 @@ rampLong lumRampX, lumRampY, colRampX, colRampY; // smooth luminance scale blend
 // ################## SETUP ####################
 void setup() {
   
-  delay(200); // startup safety delay
+  delay(1000); // startup safety delay
   Serial.begin(115200);
   randomSeed(analogRead(0));
 
@@ -81,29 +79,40 @@ void setup() {
 
   CurrentBri = Bri1;
 
+  lumRampX.go(500, 0, LINEAR);
+  lumRampY.go(500, 0, LINEAR);
+  colRampX.go(500, 0, LINEAR);
+  colRampY.go(500, 0, LINEAR);
+
   // random xy values for the noise field to ensure different starting points
   for (int i = 0; i < 4; i++)
   {
-    noiRampMin[i] = random(5000, 10000);
-    noiRampMax[i] = random(10000, 25000);
+    noiRampMin[i] = 7000;
+    noiRampMax[i] = 20000;
     xyVals[i]     = random(100000);
   }
 
   Serial.println("Hello Lamp");
   Serial.print("Brightness is set to: ");
   Serial.println(CurrentBri);
-  Serial.print("Seed is at ");
-  Serial.println();
+  Serial.print("xy-vals are: ");
+  Serial.print(xyVals[0]);
+  Serial.print(", ");
+  Serial.print(xyVals[1]);
+  Serial.print(", ");
+  Serial.print(xyVals[2]);
+  Serial.print(", ");
+  Serial.println(xyVals[3]);
 
-  changeScales(5000);
+  changeScales(10000);
   
-  buildPalette();
+  buildPalette(false);
   for (uint8_t i = 0; i < 4; i++)
   {
     col[i] = pal[i];
   }
-  brightnessAreaButton(CurrentBri, 4500, 4000, 4000);
-  paletteButton();
+  brightnessAreaButton(CurrentBri, 4500, 5000, 5000);
+  //paletteButton();
 }
 
 // #############################################
@@ -111,7 +120,7 @@ void setup() {
 void loop() {
 
   buttonSwitches(); // control button activity
-  blendColors( speed1, speed2 );
+  blendColors();
 
   makeNoise();
 
@@ -120,41 +129,24 @@ void loop() {
     if (palRamp2.isFinished() == 1) {
       paletteIndex++;
       }
-      //Serial.println(palette_changed);
+      //Serial.println(pal[0].r);
   }
 
-  EVERY_N_SECONDS(46)
+  EVERY_N_SECONDS(55)
   {
-      if (palRamp2.isFinished() == 1 && palette_changed == false)
-      {
       changeScales(20000);
-      }
   }
 
-  EVERY_N_SECONDS(77)
-  {
-    coin = random(10);
-    if ((coin % 2) == 0)
-    {
-      //lumRampY.go(random(lumRampY_min, lumRampY_max), 35000, BACK_INOUT);
-    }
-  }
-
-  EVERY_N_SECONDS(67)
+  EVERY_N_SECONDS(25)
   {
     if (palRamp2.isFinished() == 1 && palette_changed == false)
       {
-
-      //paletteButton();
-
-      grant_blend = true;
-      speed1 = 10000;
-      speed2 = 15000;
+      triggerBlend(1000, 1000, true);
     }
   }
 
   moveRange(lowerRamp.update(), upperRamp.update(), 8);
-  fadeToBlackBy(leds, NUM_LEDS, 128);
+  fadeToBlackBy(leds, NUM_LEDS, 24);
   FastLED.show();
   btn.tick();
 }
