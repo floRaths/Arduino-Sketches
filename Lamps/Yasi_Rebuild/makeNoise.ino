@@ -2,17 +2,10 @@
 uint8_t lumNoise[kMatrixHeight][kMatrixHeight];
 uint8_t colNoise[kMatrixHeight][kMatrixHeight];
 
-// Initialize temporary noise array
-uint8_t tempLumNoise[kMatrixHeight][kMatrixHeight];
-uint8_t tempColNoise[kMatrixHeight][kMatrixHeight];
-
-uint32_t lumTime;
-uint32_t colTime;
-
 void makeNoise()
 {
-    lumTime = millis() * hurry;
-    colTime = millis() * hurry;
+    uint32_t lumTime = millis() * hurry;
+    uint32_t colTime = millis() * hurry / 2;
 
     memset(lumNoise, 0, NUM_LEDS);
     fill_raw_2dnoise16into8(
@@ -46,13 +39,18 @@ void makeNoise()
     {
         for (int y = 0; y < kMatrixHeight; y++)
         {
-            uint8_t newLumData = scale8(lumNoise[x][y], 256 - noiseSmoothing) +
-                                 scale8(tempLumNoise[x][y], noiseSmoothing);
-            lumNoise[x][y] = newLumData;
-            
-            uint8_t newColData = scale8(colNoise[x][y], 256 - noiseSmoothing) +
-                                 scale8(tempColNoise[x][y], noiseSmoothing);
-            colNoise[x][y] = newColData;
+            if (dataSmoothing > 0)
+            {
+                uint8_t oldLumData = lumNoise[x][y];
+                uint8_t newLumData = scale8(oldLumData, 256 - dataSmoothing) +
+                                     scale8(lumNoise[x][y], dataSmoothing);
+                lumNoise[x][y] = newLumData;
+
+                uint8_t oldColData = colNoise[x][y];
+                uint8_t newColData = scale8(oldColData, 256 - dataSmoothing) +
+                                     scale8(colNoise[x][y], dataSmoothing);
+                colNoise[x][y] = newColData;
+            }
 
             leds[XY(x, y)] = ColorFromPalette(runPal,
                                               //  noiseCols[(y * kMatrixWidth) + x], // when used with 1D colors
@@ -62,4 +60,5 @@ void makeNoise()
                                               brighten8_raw(map8(lumNoise[x][y], 0, CurrentBri)));
         }
     }
+    //Serial.print(leds[XY(4, 10)].getLuma());
 }

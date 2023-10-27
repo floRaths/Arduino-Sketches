@@ -26,7 +26,7 @@ boolean ser_col = true;
 
 // ################## config ###################
 uint8_t hurry = 5;
-uint8_t noiseSmoothing = 24; // You can adjust this value
+uint8_t dataSmoothing = 20; // You can adjust this value
 
 // three brightness values to choose via button
 uint8_t Bri1 = 255;
@@ -34,9 +34,9 @@ uint8_t Bri2 = 75;
 uint8_t Bri3 = 75;
 
 // prameters for initial palette selection
-uint8_t base_hue1 = 170;  // first hue
-uint8_t base_hue2 = 20; // second hue
-uint8_t range = 50;       // fluctuation
+uint8_t base_hue1 = 20;  // first hue
+uint8_t base_hue2 = 30; // second hue
+uint8_t range = 5;       // fluctuation
 
 // parameter for moving the lit area
 uint16_t lower = 0;        // lower end of lights
@@ -92,17 +92,16 @@ void setup() {
     xyVals[i]     = random(100000);
   }
 
+  // noiRampMin[3] = 1;
+  // noiRampMax[3] = 1;
+  // noiRampMin[3] = 55000;
+  // noiRampMax[3] = 55000;
+
   Serial.println("Hello Lamp");
-  Serial.print("Brightness is set to: ");
-  Serial.println(CurrentBri);
+  Serial.print("Brightness is set to: "); Serial.println(CurrentBri);
   Serial.print("xy-vals are: ");
-  Serial.print(xyVals[0]);
-  Serial.print(", ");
-  Serial.print(xyVals[1]);
-  Serial.print(", ");
-  Serial.print(xyVals[2]);
-  Serial.print(", ");
-  Serial.println(xyVals[3]);
+  Serial.print(xyVals[0]); Serial.print(", "); Serial.print(xyVals[1]); Serial.print(", "); 
+  Serial.print(xyVals[2]); Serial.print(", "); Serial.println(xyVals[3]);
 
   changeScales(10000);
   
@@ -137,11 +136,11 @@ void loop() {
       changeScales(20000);
   }
 
-  EVERY_N_SECONDS(25)
+  EVERY_N_SECONDS(42)
   {
     if (palRamp2.isFinished() == 1 && palette_changed == false)
       {
-      triggerBlend(1000, 1000, true);
+      triggerBlend(10000, 1500, true);
     }
   }
 
