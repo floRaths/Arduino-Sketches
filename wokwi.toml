@@ -1,4 +1,4 @@
 [wokwi]
 version=1
-firmware='.build/WokWi-Simulator.ino.hex'
-elf='.build/WokWi-Simulator.ino.elf'
+firmware='.vscode/build/Arduino-Simulator.ino.hex'
+elf='.vscode/build/Arduino-Simulator.ino.elf'

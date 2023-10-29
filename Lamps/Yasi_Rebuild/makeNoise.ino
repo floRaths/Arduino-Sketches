@@ -60,5 +60,6 @@ void makeNoise()
                                               brighten8_raw(map8(lumNoise[x][y], 0, CurrentBri)));
         }
     }
-    //Serial.print(leds[XY(4, 10)].getLuma());
+    
+
 }
