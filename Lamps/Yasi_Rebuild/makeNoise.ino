@@ -1,12 +1,14 @@
 // two arrays holding the noise data for colors and luminosity
 uint8_t lumNoise[kMatrixHeight][kMatrixHeight];
+uint8_t scaledData[kMatrixHeight][kMatrixHeight];
+uint8_t data[kMatrixHeight][kMatrixHeight];
+
 uint8_t colNoise[kMatrixHeight][kMatrixHeight];
+
+int maxValue = 0; // Assume the first element is the maximum
 
 void makeNoise()
 {
-    uint32_t lumTime = millis() * hurry;
-    uint32_t colTime = millis() * hurry / 2;
-
     memset(lumNoise, 0, NUM_LEDS);
     fill_raw_2dnoise16into8(
         (uint8_t *)lumNoise,
@@ -17,20 +19,20 @@ void makeNoise()
         lumRampX.update(), // scalex
         xyVals[1],         // y
         lumRampY.update(), // scaley
-        lumTime            // timeVal
+        millis() * hurry   // timeVal
     );
 
     memset(colNoise, 0, NUM_LEDS);
     fill_raw_2dnoise16into8(
         (uint8_t *)colNoise,
-        kMatrixHeight,     // width
-        kMatrixHeight,     // height
-        1,                 // octaves
-        xyVals[2],         // x
-        colRampX.update(), // scalex
-        xyVals[3],         // y
-        colRampY.update(), // scalex
-        colTime            // timeVal
+        kMatrixHeight,       // width
+        kMatrixHeight,       // height
+        1,                   // octaves
+        xyVals[2],           // x
+        colRampX.update(),   // scalex
+        xyVals[3],           // y
+        colRampY.update(),   // scalex
+        millis() * hurry / 2 // timeVal
     );
 
     CRGBPalette16 runPal = CRGBPalette16(col[0], col[1], col[2], col[3]);
@@ -39,27 +41,30 @@ void makeNoise()
     {
         for (int y = 0; y < kMatrixHeight; y++)
         {
-            if (dataSmoothing > 0)
+            if (lumNoise[x][y] > maxValue)
             {
-                uint8_t oldLumData = lumNoise[x][y];
-                uint8_t newLumData = scale8(oldLumData, 256 - dataSmoothing) +
-                                     scale8(lumNoise[x][y], dataSmoothing);
-                lumNoise[x][y] = newLumData;
-
-                uint8_t oldColData = colNoise[x][y];
-                uint8_t newColData = scale8(oldColData, 256 - dataSmoothing) +
-                                     scale8(colNoise[x][y], dataSmoothing);
-                colNoise[x][y] = newColData;
+                maxValue = lumNoise[x][y]; // Update the maximum value to the highest found in the frame
             }
 
-            leds[XY(x, y)] = ColorFromPalette(runPal,
-                                              //  noiseCols[(y * kMatrixWidth) + x], // when used with 1D colors
-                                              colNoise[x][y] + paletteIndex,
-                                              // lumNoise[x][y]);
-                                              //map8(lumNoise[x][y], 0, CurrentBri));
-                                              brighten8_raw(map8(lumNoise[x][y], 0, CurrentBri)));
+            scaledData[x][y] = qadd8(lumNoise[x][y], scale8(lumNoise[x][y], maxValue));
+
+            if (dataSmoothing)
+            {
+                uint8_t olddata = data[x][y];
+                uint16_t newdata = (uint16_t)olddata * (256 - 128) + (uint16_t)scaledData[x][y] * 128;
+                data[x][y] = newdata / 256; // Convert back to uint8_t
+            }
+            else
+            {
+                data[x][y] = scaledData[x][y];
+            }
+
+            leds[mtx(x, y)] = ColorFromPalette(runPal,
+                                               // noiseCols[(y * kMatrixWidth) + x], // when used with 1D colors
+                                               colNoise[x][y] + paletteIndex,
+                                               data[x][y]);
+                                               //brighten8_raw(data[x][y]));
+                                               //dim8_raw(data[x][y]));
         }
     }
-    
-
 }

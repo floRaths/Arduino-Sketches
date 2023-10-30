@@ -1,4 +1,4 @@
-uint8_t XY(uint8_t x, uint8_t y)
+uint8_t mtx(uint8_t x, uint8_t y)
 {
 
     // any out of bounds address maps to the first hidden pixel

@@ -96,7 +96,6 @@ void fillnoise8() {
   if( speed < 50) {
     dataSmoothing = 200 - (speed * 4);
   }
-  Serial.println(noise[4][10]);
 
   for(int i = 0; i < MAX_DIMENSION; i++) {
     int ioffset = scale * i;

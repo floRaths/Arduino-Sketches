@@ -35,3 +35,17 @@
 //         pal[i] = CHSV(hue[i], sat[i], bri[i]);
 //     }
 // }
+
+// // to increase contrast, we need to know the highest value in the current frame
+// if (lumNoise[x][y] > maxLumValue)
+// {
+//     maxLumValue = lumNoise[x][y]; // Update the maximum value to the highest found in the frame
+// }
+// if (colNoise[x][y] > maxColValue)
+// {
+//     maxColValue = colNoise[x][y]; // Update the maximum value to the highest found in the frame
+// }
+
+// // expand the value accordingly to the determined max value (+ 5 to reduce clipping).
+// lumNoise[x][y] = map(lumNoise[x][y], 0, maxLumValue + 5, 0, 255);
+// colNoise[x][y] = map(colNoise[x][y], 0, maxColValue + 5, 0, 255);

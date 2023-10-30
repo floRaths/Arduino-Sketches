@@ -25,17 +25,17 @@ boolean ser_col = true;
 //boolean prototyping = false;
 
 // ################## config ###################
-uint8_t hurry = 5;
-uint8_t dataSmoothing = 20; // You can adjust this value
+uint8_t hurry = 10;
+boolean dataSmoothing = true;
 
 // three brightness values to choose via button
-uint8_t Bri1 = 255;
+uint8_t Bri1 = 200;
 uint8_t Bri2 = 75;
 uint8_t Bri3 = 75;
 
 // prameters for initial palette selection
 uint8_t base_hue1 = 20;  // first hue
-uint8_t base_hue2 = 30; // second hue
+uint8_t base_hue2 = 120; // second hue
 uint8_t range = 5;       // fluctuation
 
 // parameter for moving the lit area
@@ -71,7 +71,7 @@ void setup() {
   randomSeed(analogRead(0));
 
   FastLED.addLeds < WS2812B, LED_PIN, GRB > (leds, NUM_LEDS);
-  FastLED.setBrightness(255); // this brightness will be overridden by makeNoise function
+  FastLED.setBrightness(0); // this brightness will be overridden by makeNoise function
 
   btn.attachClick(brightnessAreaButton);
   btn.attachLongPressStart(paletteButton);
@@ -89,7 +89,7 @@ void setup() {
   {
     noiRampMin[i] = 7000;
     noiRampMax[i] = 20000;
-    xyVals[i]     = random(100000);
+    xyVals[i]     = random(10000);
   }
 
   // noiRampMin[3] = 1;
@@ -128,7 +128,7 @@ void loop() {
     if (palRamp2.isFinished() == 1) {
       paletteIndex++;
       }
-      //Serial.println(pal[0].r);
+      //Serial.println(lumNoise[4][10]);
   }
 
   EVERY_N_SECONDS(55)
@@ -140,12 +140,13 @@ void loop() {
   {
     if (palRamp2.isFinished() == 1 && palette_changed == false)
       {
-      triggerBlend(10000, 1500, true);
+      triggerBlend(10000, 15000, true);
     }
   }
 
   moveRange(lowerRamp.update(), upperRamp.update(), 8);
   fadeToBlackBy(leds, NUM_LEDS, 24);
+  FastLED.setBrightness(CurrentBri);
   FastLED.show();
   btn.tick();
 }

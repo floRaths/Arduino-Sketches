@@ -104,13 +104,14 @@ void buildPalette(bool randomize)
     if (randomize == false)
     {
         Serial.print("Pal0 = ");
-        pal[0] = makeColor(base_hue1, range, 55, 15);
+        pal[0] = makeColor(base_hue1 - random(0, 9), range, 130, 45);
         Serial.print("Pal1 = ");
-        pal[1] = makeColor(base_hue2, range, 55, 15);
-        Serial.print("Pal3 = ");
-        pal[2] = makeColor(base_hue2 - random(0, 9), range, 130, 45);
+        pal[1] = makeColor(base_hue1, range, 55, 15);
         Serial.print("Pal2 = ");
-        pal[3] = makeColor(base_hue1 - random(0, 9), range, 130, 45);
+        pal[2] = makeColor(base_hue2, range, 55, 15);
+        Serial.print("Pal3 = ");
+        pal[3] = makeColor(base_hue2 - random(0, 9), range, 130, 45);
+        
     }
     else // randomize
     {
@@ -139,4 +140,17 @@ void buildPalette(bool randomize)
             pal[3] = makeColor(base_hue1 - random(0, 9), range, 130, 45);
         }
     }
+}
+
+// Define a function to expand data and update the maximum value
+uint8_t expandAndTrack(uint8_t input, int &maxValue, uint8_t buffer)
+{
+    // To increase contrast, update the maximum value if the input is higher
+    if (input > maxValue)
+    {
+        maxValue = input; // Update the maximum value to the highest found in the frame
+    }
+
+    // Expand the value accordingly to the determined max value (+ 5 to reduce clipping).
+    return map(input, 0, maxValue + buffer, 0, 255);
 }

@@ -11,5 +11,9 @@
     [ "uno:5V", "lcd:VCC", "red", [ "v28", "*", "h-16" ] ],
     [ "uno:A4", "lcd:SDA", "green", [ "v32", "*", "h-12" ] ],
     [ "uno:A5", "lcd:SCL", "blue", [ "v36", "*", "h-8" ] ]
-  ]
+  ],
+  "serialMonitor": {
+    "display": "plotter"
+  }
 }
+
