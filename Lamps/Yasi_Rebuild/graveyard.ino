@@ -49,3 +49,16 @@
 // // expand the value accordingly to the determined max value (+ 5 to reduce clipping).
 // lumNoise[x][y] = map(lumNoise[x][y], 0, maxLumValue + 5, 0, 255);
 // colNoise[x][y] = map(colNoise[x][y], 0, maxColValue + 5, 0, 255);
+
+// uint8_t noiseCols[NUM_LEDS];
+
+
+
+// memset(noiseCols, 0, NUM_LEDS);
+// fill_raw_noise16into8(
+//     noiseCols,
+//     NUM_LEDS,
+//     1,            // octaves
+//     33000,        //  x - don't mess with this one
+//     NUM_LEDS * 6, // scale
+//     timeCols);

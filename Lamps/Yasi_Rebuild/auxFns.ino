@@ -142,7 +142,6 @@ void buildPalette(bool randomize)
     }
 }
 
-// Define a function to expand data and update the maximum value
 uint8_t expandAndTrack(uint8_t input, int &maxValue, uint8_t buffer)
 {
     // To increase contrast, update the maximum value if the input is higher
@@ -153,4 +152,39 @@ uint8_t expandAndTrack(uint8_t input, int &maxValue, uint8_t buffer)
 
     // Expand the value accordingly to the determined max value (+ 5 to reduce clipping).
     return map(input, 0, maxValue + buffer, 0, 255);
+}
+
+void moveRange(uint8_t lower, uint8_t upper, uint8_t steps)
+{
+    for (int i = upper; i < NUM_LEDS; i++)
+    {
+        int value = (255 / steps) * (i - upper);
+        if (value >= 255)
+            value = 255;
+
+        if (prototyping)
+        {
+            leds[NUM_LEDS - 1 - i].subtractFromRGB(value);
+        }
+        else
+        {
+            leds[i].subtractFromRGB(value);
+        }
+    }
+
+    for (int k = lower; k > -1; k--)
+    {
+        int value = (255 / steps) * (lower - k);
+        if (value >= 255)
+            value = 255;
+
+        if (prototyping)
+        {
+            leds[NUM_LEDS - 1 - k].subtractFromRGB(value);
+        }
+        else
+        {
+            leds[k].subtractFromRGB(value);
+        }
+    }
 }
