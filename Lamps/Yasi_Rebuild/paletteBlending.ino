@@ -1,15 +1,14 @@
-
 void triggerBlend(int ramp1_speed, int ramp2_speed, bool randomize)
 {
-        Serial.println();
-        Serial.println("Shuffling Colors");
-        buildPalette(randomize); // creating a new palette
+    Serial.println();
+    Serial.println("Shuffling Colors");
+    buildPalette(randomize); // creating a new palette
 
-        new_colors = true;   // allows blending of old colors to new colors
+    new_colors = true; // allows blending of old colors to new colors
 
-        // start smoothly blending colors
-        palRamp1.go(255, ramp1_speed, QUINTIC_IN);
-        palRamp2.go(255, ramp2_speed, QUINTIC_IN);
+    // start smoothly blending colors
+    palRamp1.go(255, ramp1_speed, QUINTIC_IN);
+    palRamp2.go(255, ramp2_speed, QUINTIC_IN);
 }
 
 // when a new palette is requested, the old colors are blended towards that new state

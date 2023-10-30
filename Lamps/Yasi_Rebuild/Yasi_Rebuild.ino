@@ -9,20 +9,17 @@
 // Button Initialization
 OneButton btn = OneButton(BTN_PIN, true, true);
 
-// #############################################
-// ################## SETUP ####################
-
 // ################## matrix ###################
 const uint8_t kMatrixWidth  = 8;
 const uint8_t kMatrixHeight = 13;
 
-#define NUM_LEDS kMatrixWidth *kMatrixHeight
+#define NUM_LEDS kMatrixWidth * kMatrixHeight
 CRGB leds[NUM_LEDS];
 
 boolean coil = true;
 boolean flip = false;
 boolean ser_col = true;
-//boolean prototyping = false;
+boolean prototyping = true;
 
 // ################## config ###################
 uint8_t hurry = 10;
@@ -111,7 +108,6 @@ void setup() {
     col[i] = pal[i];
   }
   brightnessAreaButton(CurrentBri, 4500, 5000, 5000);
-  //paletteButton();
 }
 
 // #############################################
@@ -136,16 +132,29 @@ void loop() {
       changeScales(20000);
   }
 
-  EVERY_N_SECONDS(42)
+  EVERY_N_SECONDS(103)
   {
     if (palRamp2.isFinished() == 1 && palette_changed == false)
       {
+      newScales();
+      pickNewHues(0, 0, 30);
+      range = random(5, 15);
+
+      triggerBlend(10500, 15000, false);
+
+    }
+  }
+
+  EVERY_N_SECONDS(47)
+  {
+    if (palRamp2.isFinished() == 1 && palette_changed == false)
+    {
       triggerBlend(10000, 15000, true);
     }
   }
 
   moveRange(lowerRamp.update(), upperRamp.update(), 8);
-  fadeToBlackBy(leds, NUM_LEDS, 24);
+  fadeToBlackBy(leds, NUM_LEDS, 64);
   FastLED.setBrightness(CurrentBri);
   FastLED.show();
   btn.tick();

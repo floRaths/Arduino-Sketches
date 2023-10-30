@@ -1,11 +1,8 @@
 
 uint8_t switchBrightness;
 uint8_t switchArea;
-uint8_t switchPalette;
-uint8_t switchPalette2;
 
-uint8_t stored_bri;
-uint8_t TargetBri; // when the button is pressed, this is the new brightness to transition to
+uint8_t TargetBri, stored_bri; // when the button is pressed, this is the new brightness to transition to
 
 void buttonSwitches()
 {
@@ -44,10 +41,9 @@ void paletteButton()
 
     palette_changed = true;
     triggerBlend(500, 500, true);
-    
+
     stored_bri = CurrentBri;
-    briRamp.go(0, 50, LINEAR);
-    
+    briRamp.go(0, 50, LINEAR);   
 }
 
 // // Activates smooth blending to new brightness
