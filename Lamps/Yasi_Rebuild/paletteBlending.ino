@@ -35,7 +35,7 @@ void blendColors()
         if (palRamp2.isFinished() == 1 && palette_changed == true)
         {
             palette_changed = false;
-            briRamp.go(stored_bri, 500, LINEAR);
+            briRamp.go(stored_bri, 1000, LINEAR);
             changeScales(4000);
         }
     }

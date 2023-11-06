@@ -1,8 +1,7 @@
-
-uint8_t switchBrightness;
+uint8_t switchBrightness = 0;
 uint8_t switchArea;
 
-uint8_t TargetBri, stored_bri; // when the button is pressed, this is the new brightness to transition to
+uint8_t stored_bri; // when the button is pressed, this is the new brightness to transition to
 
 void buttonSwitches()
 {
@@ -11,22 +10,40 @@ void buttonSwitches()
     {
     case 0:
         TargetBri = Bri1;
+        bri_speed = 750;
+        lo_speed = 1000;
+        up_speed = 1000;
+
+        lower = 0;                     // lower end of lights
+        upper = NUM_LEDS - 4; // upper end of lights
         break;
     case 1:
         TargetBri = Bri2;
+        bri_speed = 750;
+        lo_speed = 1000;
+        up_speed = 1000;
+
+        lower = 0;            // lower end of lights
+        upper = NUM_LEDS - 4; // upper end of lights
         break;
     case 2:
         TargetBri = Bri3;
+        bri_speed = 750;
+        lo_speed = 1000;
+        up_speed = 1000;
+
+        lower = 0;            // lower end of lights
+        upper = 30; // upper end of lights
         break;
     }
 }
 
-void brightnessAreaButton(uint8_t brightness, int bri_speed, int lo_speed, int up_speed)
+void brightnessAreaButton()
 {
     switchBrightness = (switchBrightness + 1) % 3;
-    briRamp.go(brightness, bri_speed, CIRCULAR_INOUT);
+    briRamp.go(TargetBri, bri_speed, CIRCULAR_INOUT);
 
-    switchArea = (switchArea + 1) % 3;
+    //switchArea = (switchArea + 1) % 3;
     lowerRamp.go(lower, lo_speed, CIRCULAR_INOUT);
     upperRamp.go(upper, up_speed, CIRCULAR_INOUT);
 }
@@ -40,10 +57,10 @@ void paletteButton()
     range = random(5, 15);
 
     palette_changed = true;
-    triggerBlend(500, 500, true);
+    triggerBlend(500, 500, false);
 
     stored_bri = CurrentBri;
-    briRamp.go(0, 50, LINEAR);   
+    briRamp.go(0, 100, LINEAR);
 }
 
 // // Activates smooth blending to new brightness

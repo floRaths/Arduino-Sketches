@@ -62,8 +62,8 @@ void makeNoise()
             leds[mtx(x, y)] = ColorFromPalette(runPal,
                                                // noiseCols[(y * kMatrixWidth) + x], // when used with 1D colors
                                                colNoise[x][y] + paletteIndex,
-                                               data[x][y]);
-                                               //brighten8_raw(data[x][y]));
+                                               //data[x][y]);
+                                               brighten8_lin(data[x][y]));
                                                //dim8_raw(data[x][y]));
         }
     }

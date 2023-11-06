@@ -1,4 +1,4 @@
 [wokwi]
 version=1
-firmware='.vscode/build/Arduino-Simulator.ino.hex'
-elf='.vscode/build/Arduino-Simulator.ino.elf'
+firmware='.vscode/build/Yasi_Rebuild.ino.hex'
+elf='.vscode/build/Yasi_Rebuild.ino.elf'

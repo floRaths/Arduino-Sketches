@@ -119,25 +119,25 @@ void buildPalette(bool randomize)
         if ((coin % 2) == 0)
         {
             Serial.print("Pal0 = ");
-            pal[0] = makeColor(base_hue1, range, 55, 15);
+            pal[0] = makeColor(base_hue1 - random(0, 9), range, 130, 45);
         }
         coin = random(10);
         if ((coin % 2) == 0)
         {
             Serial.print("Pal1 = ");
-            pal[1] = makeColor(base_hue2, range, 55, 15);
+            pal[1] = makeColor(base_hue1, range, 55, 15);
         }
         coin = random(10);
         if ((coin % 2) == 0)
         {
             Serial.print("Pal3 = ");
-            pal[2] = makeColor(base_hue2 - random(0, 9), range, 130, 45);
+            pal[2] = makeColor(base_hue2, range, 55, 15);
         }
         coin = random(10);
         if ((coin % 2) == 0)
         {
             Serial.print("Pal2 = ");
-            pal[3] = makeColor(base_hue1 - random(0, 9), range, 130, 45);
+            pal[3] = makeColor(base_hue2 - random(0, 9), range, 130, 45);
         }
     }
 }

@@ -22,30 +22,30 @@ boolean ser_col = true;
 boolean prototyping = true;
 
 // ################## config ###################
-uint8_t hurry = 10;
+uint8_t hurry = 6;
 boolean dataSmoothing = true;
 
 // three brightness values to choose via button
-uint8_t Bri1 = 200;
-uint8_t Bri2 = 75;
-uint8_t Bri3 = 75;
+uint8_t Bri1 = 255;
+uint8_t Bri2 = 86;
+uint8_t Bri3 = 86;
 
 // prameters for initial palette selection
 uint8_t base_hue1 = 20;  // first hue
-uint8_t base_hue2 = 120; // second hue
+uint8_t base_hue2 = 10; // second hue
 uint8_t range = 5;       // fluctuation
 
 // parameter for moving the lit area
 uint16_t lower = 0;        // lower end of lights
-uint16_t upper = NUM_LEDS - 5; // upper end of lights
-uint16_t store;
+uint16_t upper = NUM_LEDS - 4; // upper end of lights
+uint16_t store, up_speed, lo_speed, bri_speed;
 
 // ################## inits ###################
 // booleans for conditional execution
 boolean palette_changed = false;
 boolean new_colors = false;
 
-uint8_t paletteIndex, CurrentBri, coin;
+uint8_t paletteIndex, CurrentBri, TargetBri, coin;
 int speed1, speed2; // initial smoothing speeds set (0.5 seconds)
 uint32_t xyVals[4];
 int noiRampMin[4];
@@ -68,13 +68,12 @@ void setup() {
   randomSeed(analogRead(0));
 
   FastLED.addLeds < WS2812B, LED_PIN, GRB > (leds, NUM_LEDS);
-  FastLED.setBrightness(0); // this brightness will be overridden by makeNoise function
+  FastLED.setBrightness(0);
+  FastLED.setCorrection(TypicalPixelString);
 
   btn.attachClick(brightnessAreaButton);
   btn.attachLongPressStart(paletteButton);
   btn.setPressMs(250);
-
-  CurrentBri = Bri1;
 
   lumRampX.go(500, 0, LINEAR);
   lumRampY.go(500, 0, LINEAR);
@@ -89,10 +88,10 @@ void setup() {
     xyVals[i]     = random(10000);
   }
 
+  // noiRampMin[2] = 5000;
+  // noiRampMax[2] = 15000;
   // noiRampMin[3] = 1;
   // noiRampMax[3] = 1;
-  // noiRampMin[3] = 55000;
-  // noiRampMax[3] = 55000;
 
   Serial.println("Hello Lamp");
   Serial.print("Brightness is set to: "); Serial.println(CurrentBri);
@@ -107,7 +106,10 @@ void setup() {
   {
     col[i] = pal[i];
   }
-  brightnessAreaButton(CurrentBri, 4500, 5000, 5000);
+
+  bri_speed = 4500; lo_speed = 5000; up_speed = 5000;
+  TargetBri = Bri1;
+  brightnessAreaButton();
 }
 
 // #############################################
@@ -119,30 +121,17 @@ void loop() {
 
   makeNoise();
 
-  EVERY_N_MILLISECONDS(200)
+  EVERY_N_MILLISECONDS(100)
   {
     if (palRamp2.isFinished() == 1) {
       paletteIndex++;
       }
-      //Serial.println(lumNoise[4][10]);
+      //Serial.println(CurrentBri);
   }
 
   EVERY_N_SECONDS(55)
   {
       changeScales(20000);
-  }
-
-  EVERY_N_SECONDS(103)
-  {
-    if (palRamp2.isFinished() == 1 && palette_changed == false)
-      {
-      newScales();
-      pickNewHues(0, 0, 30);
-      range = random(5, 15);
-
-      triggerBlend(10500, 15000, false);
-
-    }
   }
 
   EVERY_N_SECONDS(47)
@@ -159,4 +148,3 @@ void loop() {
   FastLED.show();
   btn.tick();
 }
-
