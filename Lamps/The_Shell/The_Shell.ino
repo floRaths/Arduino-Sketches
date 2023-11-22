@@ -27,6 +27,7 @@ boolean dataSmoothing = true;
 
 boolean rolling = false;
 boolean triple = false;
+boolean indexDrift = false;
 
 // three brightness values to choose via button
 uint8_t Bri1 = 255;
@@ -34,8 +35,8 @@ uint8_t Bri2 = 86;
 uint8_t Bri3 = 86;
 
 // prameters for initial palette selection
-uint8_t base_hue1 = 15;  // first hue
-uint8_t base_hue2 = 20; // second hue
+uint8_t base_hue1 = 20;  // first hue
+uint8_t base_hue2 = 25; // second hue
 uint8_t base_hue3 = base_hue2; // second hue
 uint8_t range = 5;       // fluctuation
 
@@ -88,19 +89,18 @@ void setup() {
   for (int i = 0; i < 4; i++)
   {
     noiRampMin[i] = 5000;
-    noiRampMax[i] = 5000;
+    noiRampMax[i] = 10000;
     xyVals[i]     = random(10000);
   }
 
   Serial.println("Hello Lamp");
-  Serial.print("Brightness is set to: "); Serial.println(CurrentBri);
   Serial.print("xy-vals are: ");
   Serial.print(xyVals[0]); Serial.print(", "); Serial.print(xyVals[1]); Serial.print(", "); 
   Serial.print(xyVals[2]); Serial.print(", "); Serial.println(xyVals[3]);
 
   changeScales(10000);
   
-  buildPalette(range, false, false);
+  buildPalette(range, true, false);
   for (uint8_t i = 0; i < 4; i++)
   { col[i] = pal[i];}
 
@@ -119,12 +119,13 @@ void loop() {
 
   makeNoise();
 
-  // EVERY_N_MILLISECONDS(5)
-  // {
-  //   if (palRamp2.isFinished() == 1) {
-  //     paletteIndex ++;
-  //     }
-  // }
+  EVERY_N_MILLISECONDS(10)
+  {
+    if (indexDrift == true)
+    {
+        paletteIndex ++;
+    }
+  }
 
   EVERY_N_SECONDS(55)
   {

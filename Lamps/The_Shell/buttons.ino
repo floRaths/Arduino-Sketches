@@ -1,5 +1,6 @@
 uint8_t switchBrightness = 0;
 uint8_t switchArea = 2;
+uint8_t switchIndex = 4;
 
 uint8_t stored_bri; // when the button is pressed, this is the new brightness to transition to
 
@@ -69,6 +70,18 @@ void paletteButton()
     {
         triple = false;
         Serial.println("building duocolor palette");
+    }
+
+    switchIndex = (switchIndex + 1) % 5;
+    if (switchIndex == 4)
+    {
+        indexDrift = true;
+        Serial.println("activating Index drift");
+        }
+    else
+    {
+        indexDrift = false;
+        Serial.println("no Index drift");
     }
 
     newHues(60, 60, 30);

@@ -59,5 +59,9 @@ void rollColors()
         palette_changed = false;
         briRamp.go(stored_bri, 1000, LINEAR);
         //changeScales(4000);
+        if (indexDrift == false) {
+            paletteIndex = 0;
+            Serial.println("resetting palIndex");
+        }
     }
 }
