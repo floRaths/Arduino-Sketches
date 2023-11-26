@@ -92,3 +92,34 @@
 //         palRamp1.go(0, 0, NONE);
 //     }
 // }
+
+// void newHues(uint8_t exclude_min, uint8_t exclude_max, uint8_t min_diff)
+// {
+//     do
+//     {
+//         base_hue1 = random(0, 255 + 1); // Generate a random integer for the first variable
+//         do
+//         {
+//             base_hue2 = random(0, 255 + 1);              // Generate a random integer for the second variable
+//         } while (abs(base_hue2 - base_hue1) < min_diff); // Ensure a difference of at least 20
+//         do
+//         {
+//             base_hue3 = random(0, 255 + 1);
+//         } while ((abs(base_hue3 - base_hue2) < min_diff) &&
+//                  (abs(base_hue3 - base_hue1) < min_diff));
+//     } while (
+//         (base_hue1 >= exclude_min && base_hue1 <= exclude_max) || // Check exclusion range for the first variable
+//         (base_hue2 >= exclude_min && base_hue2 <= exclude_max)    // Check exclusion range for the second variable
+//     );
+
+//     if (reporting)
+//     {
+//         Serial.println();
+//         Serial.print("Hue1: ");
+//         Serial.print(base_hue1);
+//         Serial.print(", Hue2: ");
+//         Serial.print(base_hue2);
+//         Serial.print(", delta = ");
+//         Serial.println(abs(base_hue1 - base_hue2));
+//     }
+// }

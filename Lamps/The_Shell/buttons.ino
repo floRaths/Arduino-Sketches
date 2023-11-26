@@ -84,7 +84,7 @@ void paletteButton()
         Serial.println("no Index drift");
     }
 
-    newHues(60, 60, 30);
+    newHues(30);
     buildPalette(random(5, 15), true, triple);
     triggerRoll(1000);
 

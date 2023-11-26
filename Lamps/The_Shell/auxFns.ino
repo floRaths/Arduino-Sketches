@@ -57,49 +57,27 @@ void changeScales(int speed)
     lumRampY.go(random(noiRampMin[1], noiRampMax[1]), speed * random_float(0.5, 1.5), BACK_INOUT); // when Y is low and X high = banding over width
     colRampX.go(random(noiRampMin[2], noiRampMax[2]), speed * random_float(0.5, 1.5), BACK_INOUT);
     colRampY.go(random(noiRampMin[3], noiRampMax[3]), speed * random_float(0.5, 1.5), BACK_INOUT);
-    Serial.println("Scales Changed");
-}
-
-void newHues(uint8_t exclude_min, uint8_t exclude_max, uint8_t min_diff)
-{
-    do
+    if (reporting)
     {
-        base_hue1 = random(0, 255 + 1); // Generate a random integer for the first variable
-        do
-        {
-            base_hue2 = random(0, 255 + 1);              // Generate a random integer for the second variable
-        } while (abs(base_hue2 - base_hue1) < min_diff); // Ensure a difference of at least 20
-        do
-        {
-            base_hue3 = random(0, 255 + 1);
-        } while ((abs(base_hue3 - base_hue2) < min_diff) &&
-                 (abs(base_hue3 - base_hue1) < min_diff));
-    } while (
-        (base_hue1 >= exclude_min && base_hue1 <= exclude_max) || // Check exclusion range for the first variable
-        (base_hue2 >= exclude_min && base_hue2 <= exclude_max)    // Check exclusion range for the second variable
-    );
-
-    Serial.println();
-    Serial.print("Hue1: ");
-    Serial.print(base_hue1);
-    Serial.print(", Hue2: ");
-    Serial.print(base_hue2);
-    Serial.print(", delta = ");
-    Serial.println(abs(base_hue1 - base_hue2));
+        Serial.println("Scales Changed");
+    }
 }
 
 CHSV makeColor(uint8_t base_hue, uint8_t fluct, uint8_t sat_range, uint8_t bri_range)
 {
     uint8_t hue = random(base_hue - fluct, base_hue + fluct);
-    uint8_t sat = random(255 - sat_range, 255+1);
-    uint8_t bri = random(255 - bri_range, 255+1);
+    uint8_t sat = random(255 - sat_range, 255 + 1);
+    uint8_t bri = random(255 - bri_range, 255 + 1);
 
-    Serial.print(hue);
-    Serial.print(", ");
-    Serial.print(sat);
-    Serial.print(", ");
-    Serial.print(bri);
-    Serial.println("");
+    if (reporting)
+    {
+        Serial.print(hue);
+        Serial.print(", ");
+        Serial.print(sat);
+        Serial.print(", ");
+        Serial.print(bri);
+        Serial.println("");
+    }
 
     CHSV color = CHSV(hue, sat, bri);
     return color;
@@ -199,4 +177,23 @@ void moveRange(uint8_t lower, uint8_t upper, uint8_t steps)
             leds[k].subtractFromRGB(value);
         }
     }
+}
+
+void newHues(uint8_t min_diff)
+{
+    uint8_t old_hue = base_hue1;
+    base_hue1 = old_hue + min_diff + random(0, 255 - (2 * min_diff));      // Generate a random integer for the first variable
+    base_hue2 = base_hue1 + min_diff + random(0, 255 - (2 * min_diff)); // Generate a random integer for the second variable
+    base_hue3 = base_hue2 + min_diff + random(0, 255 - (2 * min_diff)); // Generate a random integer for the second variable
+
+        if (reporting)
+        {
+            Serial.println();
+            Serial.print("Hue1: ");
+            Serial.print(base_hue1);
+            Serial.print(", Hue2: ");
+            Serial.print(base_hue2);
+            Serial.print(", delta = ");
+            Serial.println(abs(base_hue1 - base_hue2));
+        }
 }
