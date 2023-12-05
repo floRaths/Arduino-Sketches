@@ -21,6 +21,8 @@ boolean flip = false;
 boolean ser_col = true;
 boolean prototyping = false;
 boolean reporting = false;
+boolean pressed = false;
+boolean twinkle = false;
 
 // ################## config ###################
 uint8_t hurry = 6;
@@ -37,7 +39,7 @@ uint8_t Bri3 = 86;
 
 // prameters for initial palette selection
 uint8_t base_hue1 = 30;  // first hue
-uint8_t base_hue2 = 35; // second hue
+uint8_t base_hue2 = 37; // second hue
 uint8_t base_hue3 = base_hue2; // second hue
 uint8_t range = 5;       // fluctuation
 
@@ -56,6 +58,7 @@ int speed1, speed2; // initial smoothing speeds set (0.5 seconds)
 uint32_t xyVals[4];
 int noiRampMin[4];
 int noiRampMax[4];
+int rampStore[4];
 
 CRGB col[4]; // these are the currently used colors
 CRGB pal[4]; // these are colors of a new palette that we blend to
@@ -90,14 +93,9 @@ void setup() {
   for (int i = 0; i < 4; i++)
   {
     noiRampMin[i] = 5000;
-    noiRampMax[i] = 10000;
+    noiRampMax[i] = 15000;
     xyVals[i]     = random(10000);
   }
-
-  Serial.println("Hello Lamp");
-  // Serial.print("xy-vals are: ");
-  // Serial.print(xyVals[0]); Serial.print(", "); Serial.print(xyVals[1]); Serial.print(", "); 
-  // Serial.print(xyVals[2]); Serial.print(", "); Serial.println(xyVals[3]);
 
   changeScales(10000);
   
@@ -109,6 +107,7 @@ void setup() {
   TargetBri = Bri1;
   brightnessAreaButton();
 
+  Serial.println("Hello Lamp");
 }
 
 // #############################################
