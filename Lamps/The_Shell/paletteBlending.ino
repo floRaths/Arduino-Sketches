@@ -16,8 +16,8 @@ void triggerRoll(int roll_speed)
     }
 
     // start interpolation of blending function
-    palRamp1.go(255, roll_speed * 0.65, QUINTIC_IN);
-    palRamp2.go(255, roll_speed, QUINTIC_IN);
+    palRamp1.go(255, roll_speed * 0.65, LINEAR);
+    palRamp2.go(255, roll_speed, LINEAR);
 
     rolling = true;
 }
@@ -33,17 +33,22 @@ void rollColors()
 
     // colors with odd index (1 & 3) are blended with palRamp1
     // colors with even index (0 & 2) are blended with palRamp2
-    for (int i = 0; i < 4; ++i)
-    {
-        if (i % 2 == 0)
-        {
-            col[i] = nblend(col[i], pal[list[i]], palRamp2.update());
-        }
-        else
-        {
-            col[i] = nblend(col[i], pal[list[i]], palRamp1.update());
-        }
-    }
+    col[0] = nblend(col[0], pal[list[0]], palRamp1.update());
+    col[1] = nblend(col[1], pal[list[1]], palRamp2.update());
+    col[2] = nblend(col[2], pal[list[2]], palRamp1.update());
+    col[3] = nblend(col[3], pal[list[3]], palRamp2.update());
+
+    // for (int i = 0; i < 4; ++i)
+    // {
+    //     if (i % 2 == 0)
+    //     {
+    //         col[i] = nblend(col[i], pal[list[i]], palRamp2.update());
+    //     }
+    //     else
+    //     {
+    //         col[i] = nblend(col[i], pal[list[i]], palRamp1.update());
+    //     }
+    // }
 
     // after the slower ramp is done, we terminate the color blending and re-set
     if (palRamp2.isFinished() == 1)
@@ -57,8 +62,8 @@ void rollColors()
     if (palRamp2.isFinished() == 1 && palette_changed == true)
     {
         palette_changed = false;
-        briRamp.go(stored_bri, 1000, LINEAR);
-        //changeScales(4000);
+        briRamp.go(stored_bri, 1500, LINEAR);
+        
         if (indexDrift == false) {
             paletteIndex = 0;
             Serial.println("resetting palIndex");

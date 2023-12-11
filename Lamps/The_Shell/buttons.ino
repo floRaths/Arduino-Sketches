@@ -18,15 +18,9 @@ void buttonSwitches()
         {
             TargetBri = Bri1;
 
-            noiRampMin[0] = rampStore[0];
-            noiRampMin[1] = rampStore[1];
-            noiRampMax[0] = rampStore[2];
-            noiRampMax[1] = rampStore[3];
-
             lower = 0;            // lower end of lights
             upper = NUM_LEDS - 4; // upper end of lights
 
-            twinkle = false;
             pressed = false;
         }
         break;
@@ -39,7 +33,6 @@ void buttonSwitches()
             lower = 0;            // lower end of lights
             upper = NUM_LEDS - 4; // upper end of lights
 
-            twinkle = false;
             pressed = false;
         }
         break;
@@ -48,22 +41,11 @@ void buttonSwitches()
 
         if (pressed)
         {
-            rampStore[0] = noiRampMin[0];
-            rampStore[1] = noiRampMin[1];
-            rampStore[2] = noiRampMax[0];
-            rampStore[3] = noiRampMax[1];
-
             TargetBri = Bri3;
 
-            noiRampMin[0] = 50000;
-            noiRampMax[0] = 50000;
-            noiRampMin[1] = 50000;
-            noiRampMax[1] = 50000;
-
             lower = 0;  // lower end of lights
-            upper = 30; // upper end of lights
-            
-            twinkle = true;
+            upper = 20; // upper end of lights
+        
             pressed = false;
         }
         break;
@@ -79,7 +61,7 @@ void brightnessAreaButton()
 
     lowerRamp.go(lower, lo_speed, CIRCULAR_INOUT);
     upperRamp.go(upper, up_speed, CIRCULAR_INOUT);
-    changeScales(30000);
+    //changeScales(30000);
     Serial.println(noiRampMin[0]);
 }
 
@@ -119,12 +101,23 @@ void paletteButton()
         Serial.println("no Index drift");
     }
 
+    if (switchIndex == 3)
+    {
+        rainbow = true;
+        Serial.println("RAINBOWWW");
+    }
+    else
+    {
+        rainbow = false;
+    }
+
     newHues(30);
-    buildPalette(random(5, 15), true, triple);
+    range = random(5, 15);
+    buildPalette(range, true, triple, sat_range, bri_range);
     triggerRoll(1000);
 
     newScales();
-    changeScales(6000);
+    changeScales(10000);
 
     palette_changed = true;
     stored_bri = CurrentBri;

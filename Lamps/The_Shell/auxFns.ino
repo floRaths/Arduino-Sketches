@@ -11,20 +11,20 @@ void newScales() {
     // Set the value based on probabilities
     if (randomNumber1 <= 9)
     {
-        noiRampMin[0] = 5000; noiRampMax[0] = 50000;
-        noiRampMin[1] = 5000; noiRampMax[1] = 50000;
+        noiRampMin[0] = 2000; noiRampMax[0] = 20000;
+        noiRampMin[1] = 2000; noiRampMax[1] = 20000;
         Serial.println("Regular Luma");
     }
     else if (randomNumber1 <= 11)
     {
-        noiRampMin[0] = 7500; noiRampMax[0] = 30000;
+        noiRampMin[0] = 4500; noiRampMax[0] = 20000;
         noiRampMin[1] = 1; noiRampMax[1] = 1;
         Serial.println("Side banded Luma");
     }
     else
     {
         noiRampMin[0] = 1; noiRampMax[0] = 1;
-        noiRampMin[1] = 25000; noiRampMax[1] = 65000;
+        noiRampMin[1] = 10000; noiRampMax[1] = 20000;
         Serial.println("Long banded Luma");
     }
 
@@ -33,20 +33,20 @@ void newScales() {
     // Set the value based on probabilities
     if (randomNumber2 <= 9)
     {
-        noiRampMin[2] = 5000; noiRampMax[2] = 50000;
-        noiRampMin[3] = 5000; noiRampMax[3] = 50000;
+        noiRampMin[2] = 2000; noiRampMax[2] = 20000;
+        noiRampMin[3] = 2000; noiRampMax[3] = 20000;
         Serial.println("Regular Cols");
     }
     else if (randomNumber2 <= 11)
     {
-        noiRampMin[2] = 7500; noiRampMax[2] = 30000;
+        noiRampMin[2] = 4500; noiRampMax[2] = 20000;
         noiRampMin[3] = 1; noiRampMax[3] = 1;
         Serial.println("Side banded Cols");
     }
     else
     {
         noiRampMin[2] = 1; noiRampMax[2] = 1;
-        noiRampMin[3] = 25000; noiRampMax[3] = 65000;
+        noiRampMin[3] = 10000; noiRampMax[3] = 20000;
         Serial.println("Long banded Cols");
     }
 }
@@ -66,7 +66,7 @@ void changeScales(int speed)
 
 CHSV makeColor(uint8_t base_hue, uint8_t fluct, uint8_t sat_range, uint8_t bri_range)
 {
-    uint8_t hue = random(base_hue - fluct, base_hue + fluct);
+    uint8_t hue = random(base_hue - fluct, base_hue + fluct + 1);
     uint8_t sat = random(255 - sat_range, 255 + 1);
     uint8_t bri = random(255 - bri_range, 255 + 1);
 
@@ -84,24 +84,24 @@ CHSV makeColor(uint8_t base_hue, uint8_t fluct, uint8_t sat_range, uint8_t bri_r
     return color;
 }
 
-void buildPalette(uint8_t range, bool change_all, bool triple)
+void buildPalette(uint8_t range, bool change_all, bool triple, uint8_t sat_range, uint8_t bri_range)
 {
     if (change_all == true)
     {
         Serial.print("Pal0 = ");
-        pal[0] = makeColor(base_hue1 - random(0, 9), range, 130, 45);
+        pal[0] = makeColor(base_hue1, range, sat_range * 2.3, bri_range * 3);
         Serial.print("Pal1 = ");
-        pal[1] = makeColor(base_hue1, range, 55, 15);
+        pal[1] = makeColor(base_hue1, range, sat_range, bri_range);
         Serial.print("Pal2 = ");
-        pal[2] = makeColor(base_hue2, range, 55, 15);
+        pal[2] = makeColor(base_hue2, range, sat_range, bri_range);
         Serial.print("Pal3 = ");
         if (triple == true)
         {
-            pal[3] = makeColor(base_hue3, range, 55, 15);
+            pal[3] = makeColor(base_hue3, range, sat_range, bri_range);
         }
         else
         {
-            pal[3] = makeColor(base_hue2 - random(0, 9), range, 130, 45);
+            pal[3] = makeColor(base_hue2, range, sat_range * 2.3, bri_range * 3);
         }
     }
     else // only change some colors
@@ -110,25 +110,32 @@ void buildPalette(uint8_t range, bool change_all, bool triple)
         if ((coin % 2) == 0)
         {
             Serial.print("Pal0 = ");
-            pal[0] = makeColor(base_hue1 - random(0, 9), range, 130, 45);
+            pal[0] = makeColor(base_hue1, range, sat_range * 2.3, bri_range * 3);
         }
         coin = random(10);
         if ((coin % 2) == 0)
         {
             Serial.print("Pal1 = ");
-            pal[1] = makeColor(base_hue1, range, 55, 15);
+            pal[1] = makeColor(base_hue1, range, sat_range, bri_range);
         }
         coin = random(10);
         if ((coin % 2) == 0)
         {
             Serial.print("Pal3 = ");
-            pal[2] = makeColor(base_hue2, range, 55, 15);
+            pal[2] = makeColor(base_hue2, range, sat_range, bri_range);
         }
         coin = random(10);
         if ((coin % 2) == 0)
         {
             Serial.print("Pal2 = ");
-            pal[3] = makeColor(base_hue2 - random(0, 9), range, 130, 45);
+            if (triple == true)
+            {
+                pal[3] = makeColor(base_hue3, range, sat_range, bri_range);
+            }
+            else
+            {
+                pal[3] = makeColor(base_hue2, range, sat_range * 2.3, bri_range * 3);
+            }
         }
     }
 }
