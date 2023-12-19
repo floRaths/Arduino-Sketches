@@ -1,9 +1,6 @@
 #include <FastLED.h>
 #include <Ramp.h>
 #include <OneButton.h>
-//#include <Adafruit_DotStar.h>
-
-//Adafruit_DotStar strip(DOTSTAR_NUM, PIN_DOTSTAR_DATA, PIN_DOTSTAR_CLK, DOTSTAR_BRG);
 
 // Pin definitions
 #define LED_PIN 5
@@ -13,8 +10,8 @@
 OneButton btn = OneButton(BTN_PIN, true, true);
 
 // ################## matrix ###################
-const uint8_t kMatrixWidth  = 9;
-const uint8_t kMatrixHeight = 14;
+const uint8_t kMatrixWidth  = 10;
+const uint8_t kMatrixHeight = 11;
 
 #define NUM_LEDS kMatrixWidth * kMatrixHeight
 CRGB leds[NUM_LEDS];
@@ -22,18 +19,11 @@ CRGB leds[NUM_LEDS];
 boolean coil = true;
 boolean flip = false;
 boolean ser_col = true;
-boolean prototyping = true;
-boolean reporting = false;
-boolean pressed = false;
-boolean rainbow = false;
+boolean prototyping = false;
 
 // ################## config ###################
-uint8_t hurry = 5;
+uint8_t hurry = 15;
 boolean dataSmoothing = true;
-
-boolean rolling = false;
-boolean triple = false;
-boolean indexDrift = false;
 
 // three brightness values to choose via button
 uint8_t Bri1 = 255;
@@ -41,15 +31,12 @@ uint8_t Bri2 = 86;
 uint8_t Bri3 = 86;
 
 // prameters for initial palette selection
-uint8_t base_hue1 = 30;  // first hue
-uint8_t base_hue2 = 50; // second hue
-uint8_t base_hue3 = base_hue2; // second hue
-uint8_t range = 10;       // fluctuation
-uint8_t sat_range = 55;
-uint8_t bri_range = 45;
+uint8_t base_hue1 = 20;  // first hue
+uint8_t base_hue2 = 10; // second hue
+uint8_t range = 5;       // fluctuation
 
 // parameter for moving the lit area
-uint16_t lower = 0;    // lower end of lights
+uint16_t lower = 0;        // lower end of lights
 uint16_t upper = NUM_LEDS - 4; // upper end of lights
 uint16_t store, up_speed, lo_speed, bri_speed;
 
@@ -63,36 +50,26 @@ int speed1, speed2; // initial smoothing speeds set (0.5 seconds)
 uint32_t xyVals[4];
 int noiRampMin[4];
 int noiRampMax[4];
-int rampStore[4];
 
-CRGB runCol[4]; // these are the currently used colors
-CRGB newCol[4]; // these are the currently used colors
-CRGB newCol2[4]; // these are the currently used colors
-CRGB oldCol[4]; // these are the currently used colors
-CRGB tmpCol[4]; // these are the currently used colors
+CRGB col[4]; // these are the currently used colors
+CRGB pal[4]; // these are colors of a new palette that we blend to
 
 // initializing smoothing functions
-rampInt briRamp, palRamp1, palRamp2; // smooth palette blending 1
+ramp briRamp, palRamp1, palRamp2; // smooth palette blending 1
 ramp lowerRamp, upperRamp; // smooth area blending 1
 rampLong lumRampX, lumRampY, colRampX, colRampY; // smooth luminance scale blending on X
 
 // #############################################
 // ################## SETUP ####################
 void setup() {
-  // turn off onboard LED
-  // strip.begin(); 
-  // strip.setBrightness(0);
-  // strip.show(); // Turn all LEDs off ASAP
-
-  delay(1000); // startup safety delay
   
+  delay(1000); // startup safety delay
   Serial.begin(115200);
   randomSeed(analogRead(0));
 
   FastLED.addLeds < WS2812B, LED_PIN, GRB > (leds, NUM_LEDS);
   FastLED.setBrightness(0);
-  FastLED.setCorrection(TypicalLEDStrip);
-  FastLED.setTemperature(Tungsten40W);
+  FastLED.setCorrection(TypicalPixelString);
 
   btn.attachClick(brightnessAreaButton);
   btn.attachLongPressStart(paletteButton);
@@ -106,25 +83,33 @@ void setup() {
   // random xy values for the noise field to ensure different starting points
   for (int i = 0; i < 4; i++)
   {
-    noiRampMin[i] = 2000;
-    noiRampMax[i] = 10000;
+    noiRampMin[i] = 7000;
+    noiRampMax[i] = 20000;
     xyVals[i]     = random(10000);
   }
 
+  // noiRampMin[2] = 5000;
+  // noiRampMax[2] = 15000;
+  // noiRampMin[3] = 1;
+  // noiRampMax[3] = 1;
+
+  Serial.println("Hello Lamp");
+  Serial.print("Brightness is set to: "); Serial.println(CurrentBri);
+  Serial.print("xy-vals are: ");
+  Serial.print(xyVals[0]); Serial.print(", "); Serial.print(xyVals[1]); Serial.print(", "); 
+  Serial.print(xyVals[2]); Serial.print(", "); Serial.println(xyVals[3]);
+
   changeScales(10000);
   
-  buildPalette(range, true, false, sat_range, bri_range);
+  buildPalette(false);
   for (uint8_t i = 0; i < 4; i++)
-  { runCol[i] = newCol[i];
-    oldCol[i] = newCol[i];
+  {
+    col[i] = pal[i];
   }
 
   bri_speed = 4500; lo_speed = 5000; up_speed = 5000;
   TargetBri = Bri1;
   brightnessAreaButton();
-
-  Serial.println("Hello Lamp");
-
 }
 
 // #############################################
@@ -132,35 +117,28 @@ void setup() {
 void loop() {
 
   buttonSwitches(); // control button activity
-  rollColors();
+  blendColors();
 
   makeNoise();
 
-  EVERY_N_MILLISECONDS(200)
+  EVERY_N_MILLISECONDS(100)
   {
-    if (indexDrift == true)
-    {
-        paletteIndex ++;
-    }
+    if (palRamp2.isFinished() == 1) {
+      paletteIndex++;
+      }
+      //Serial.println(CurrentBri);
   }
 
   EVERY_N_SECONDS(55)
   {
-      changeScales(35000);
+      changeScales(20000);
   }
 
-  EVERY_N_SECONDS(34)
+  EVERY_N_SECONDS(47)
   {
     if (palRamp2.isFinished() == 1 && palette_changed == false)
     {
-      if (rainbow)
-      {
-        newHues(30);
-        range = random(5, 15);
-      }
-
-      buildPalette(range, false, triple, sat_range, bri_range);
-      triggerRoll(30000);
+      triggerBlend(10000, 15000, true);
     }
   }
 
@@ -169,9 +147,4 @@ void loop() {
   FastLED.setBrightness(CurrentBri);
   FastLED.show();
   btn.tick();
-}
-
-bool isColorEqual(const CRGB &color1, const CRGB &color2)
-{
-  return (color1.r == color2.r && color1.g == color2.g && color1.b == color2.b);
 }

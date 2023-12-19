@@ -4,8 +4,6 @@ uint8_t scaledData[kMatrixHeight][kMatrixHeight];
 uint8_t data[kMatrixHeight][kMatrixHeight];
 
 uint8_t colNoise[kMatrixHeight][kMatrixHeight];
-uint8_t CscaledData[kMatrixHeight][kMatrixHeight];
-uint8_t Cdata[kMatrixHeight][kMatrixHeight];
 
 int maxValue = 0; // Assume the first element is the maximum
 
@@ -37,7 +35,7 @@ void makeNoise()
         millis() * hurry / 2 // timeVal
     );
 
-    CRGBPalette16 runPal = CRGBPalette16(runCol[0], runCol[1], runCol[2], runCol[3]);
+    CRGBPalette16 runPal = CRGBPalette16(col[0], col[1], col[2], col[3]);
 
     for (int x = 0; x < kMatrixWidth; x++)
     {
@@ -52,27 +50,21 @@ void makeNoise()
 
             if (dataSmoothing)
             {
-                uint8_t  olddata = data[x][y];
+                uint8_t olddata = data[x][y];
                 uint16_t newdata = (uint16_t)olddata * (256 - 128) + (uint16_t)scaledData[x][y] * 128;
                 data[x][y] = newdata / 256; // Convert back to uint8_t
-
-                uint8_t Colddata = Cdata[x][y];
-                uint16_t Cnewdata = (uint16_t)Colddata * (256 - 128) + (uint16_t)colNoise[x][y] * 128;
-                Cdata[x][y] = Cnewdata / 256; // Convert back to uint8_t
             }
             else
             {
                 data[x][y] = scaledData[x][y];
-                Cdata[x][y] = colNoise[x][y];
             }
 
             leds[mtx(x, y)] = ColorFromPalette(runPal,
                                                // noiseCols[(y * kMatrixWidth) + x], // when used with 1D colors
-                                               // colNoise[x][y] + paletteIndex,
-                                               Cdata[x][y] + paletteIndex,
-                                               // data[x][y]);
+                                               colNoise[x][y] + paletteIndex,
+                                               //data[x][y]);
                                                brighten8_lin(data[x][y]));
-            // dim8_raw(data[x][y]));
+                                               //dim8_raw(data[x][y]));
         }
     }
 }

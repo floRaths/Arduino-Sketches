@@ -11,20 +11,20 @@ void newScales() {
     // Set the value based on probabilities
     if (randomNumber1 <= 9)
     {
-        noiRampMin[0] = 2000; noiRampMax[0] = 20000;
-        noiRampMin[1] = 2000; noiRampMax[1] = 20000;
+        noiRampMin[0] = 5000; noiRampMax[0] = 50000;
+        noiRampMin[1] = 5000; noiRampMax[1] = 50000;
         Serial.println("Regular Luma");
     }
     else if (randomNumber1 <= 11)
     {
-        noiRampMin[0] = 4500; noiRampMax[0] = 20000;
+        noiRampMin[0] = 7500; noiRampMax[0] = 30000;
         noiRampMin[1] = 1; noiRampMax[1] = 1;
         Serial.println("Side banded Luma");
     }
     else
     {
         noiRampMin[0] = 1; noiRampMax[0] = 1;
-        noiRampMin[1] = 10000; noiRampMax[1] = 20000;
+        noiRampMin[1] = 25000; noiRampMax[1] = 65000;
         Serial.println("Long banded Luma");
     }
 
@@ -33,20 +33,20 @@ void newScales() {
     // Set the value based on probabilities
     if (randomNumber2 <= 9)
     {
-        noiRampMin[2] = 2000; noiRampMax[2] = 20000;
-        noiRampMin[3] = 2000; noiRampMax[3] = 20000;
+        noiRampMin[2] = 5000; noiRampMax[2] = 50000;
+        noiRampMin[3] = 5000; noiRampMax[3] = 50000;
         Serial.println("Regular Cols");
     }
     else if (randomNumber2 <= 11)
     {
-        noiRampMin[2] = 4500; noiRampMax[2] = 20000;
+        noiRampMin[2] = 7500; noiRampMax[2] = 30000;
         noiRampMin[3] = 1; noiRampMax[3] = 1;
         Serial.println("Side banded Cols");
     }
     else
     {
         noiRampMin[2] = 1; noiRampMax[2] = 1;
-        noiRampMin[3] = 10000; noiRampMax[3] = 20000;
+        noiRampMin[3] = 25000; noiRampMax[3] = 65000;
         Serial.println("Long banded Cols");
     }
 }
@@ -57,85 +57,87 @@ void changeScales(int speed)
     lumRampY.go(random(noiRampMin[1], noiRampMax[1]), speed * random_float(0.5, 1.5), BACK_INOUT); // when Y is low and X high = banding over width
     colRampX.go(random(noiRampMin[2], noiRampMax[2]), speed * random_float(0.5, 1.5), BACK_INOUT);
     colRampY.go(random(noiRampMin[3], noiRampMax[3]), speed * random_float(0.5, 1.5), BACK_INOUT);
-    
-    if (reporting)
+    Serial.println("Scales Changed");
+}
+
+void pickNewHues(uint8_t exclude_min, uint8_t exclude_max, uint8_t min_diff)
+{
+    do
     {
-        Serial.println("Scales Changed");
-    }
+        base_hue1 = random(0, 255 + 1); // Generate a random integer for the first variable
+        do
+        {
+            base_hue2 = random(0, 255 + 1);              // Generate a random integer for the second variable
+        } while (abs(base_hue2 - base_hue1) < min_diff); // Ensure a difference of at least 20
+    } while (
+        (base_hue1 >= exclude_min && base_hue1 <= exclude_max) || // Check exclusion range for the first variable
+        (base_hue2 >= exclude_min && base_hue2 <= exclude_max)    // Check exclusion range for the second variable
+    );
+
+    Serial.print("Hue1: ");
+    Serial.print(base_hue1);
+    Serial.print(", Hue2: ");
+    Serial.print(base_hue2);
+    Serial.print(", delta = ");
+    Serial.println(abs(base_hue1 - base_hue2));
 }
 
 CHSV makeColor(uint8_t base_hue, uint8_t fluct, uint8_t sat_range, uint8_t bri_range)
 {
-    uint8_t hue = random(base_hue - fluct, base_hue + fluct + 1);
-    uint8_t sat = random(255 - sat_range, 255 + 1);
-    uint8_t bri = random(255 - bri_range, 255 + 1);
+    uint8_t hue = random(base_hue - fluct, base_hue + fluct);
+    uint8_t sat = random(255 - sat_range, 255+1);
+    uint8_t bri = random(255 - bri_range, 255+1);
 
-    if (reporting)
-    {
-        Serial.print(hue);
-        Serial.print(", ");
-        Serial.print(sat);
-        Serial.print(", ");
-        Serial.print(bri);
-        Serial.println("");
-    }
+    Serial.print(hue);
+    Serial.print(", ");
+    Serial.print(sat);
+    Serial.print(", ");
+    Serial.print(bri);
+    Serial.println("");
 
     CHSV color = CHSV(hue, sat, bri);
     return color;
 }
 
-void buildPalette(uint8_t range, bool change_all, bool triple, uint8_t sat_range, uint8_t bri_range)
+void buildPalette(bool randomize)
 {
-    if (change_all == true)
+    if (randomize == false)
     {
         Serial.print("Pal0 = ");
-        newCol[0] = makeColor(base_hue1, range, sat_range * 2.3, bri_range * 3);
+        pal[0] = makeColor(base_hue1 - random(0, 9), range, 130, 45);
         Serial.print("Pal1 = ");
-        newCol[1] = makeColor(base_hue1, range, sat_range, bri_range);
+        pal[1] = makeColor(base_hue1, range, 55, 15);
         Serial.print("Pal2 = ");
-        newCol[2] = makeColor(base_hue2, range, sat_range, bri_range);
+        pal[2] = makeColor(base_hue2, range, 55, 15);
         Serial.print("Pal3 = ");
-        if (triple == true)
-        {
-            newCol[3] = makeColor(base_hue3, range, sat_range, bri_range);
-        }
-        else
-        {
-            newCol[3] = makeColor(base_hue2, range, sat_range * 2.3, bri_range * 3);
-        }
+        pal[3] = makeColor(base_hue2 - random(0, 9), range, 130, 45);
+        
     }
-    else // only change some colors
+    else // randomize
     {
         coin = random(10);
         if ((coin % 2) == 0)
         {
             Serial.print("Pal0 = ");
-            newCol[0] = makeColor(base_hue1, range, sat_range * 2.3, bri_range * 3);
+            pal[0] = makeColor(base_hue1 - random(0, 9), range, 130, 45);
         }
         coin = random(10);
         if ((coin % 2) == 0)
         {
             Serial.print("Pal1 = ");
-            newCol[1] = makeColor(base_hue1, range, sat_range, bri_range);
+            pal[1] = makeColor(base_hue1, range, 55, 15);
         }
         coin = random(10);
         if ((coin % 2) == 0)
         {
             Serial.print("Pal3 = ");
-            newCol[2] = makeColor(base_hue2, range, sat_range, bri_range);
+            pal[2] = makeColor(base_hue2, range, 55, 15);
         }
         coin = random(10);
         if ((coin % 2) == 0)
         {
             Serial.print("Pal2 = ");
-            if (triple == true)
-            {
-                newCol[3] = makeColor(base_hue3, range, sat_range, bri_range);
-            }
-            else
-            {
-                newCol[3] = makeColor(base_hue2, range, sat_range * 2.3, bri_range * 3);
-            }
+            pal[3] = makeColor(base_hue2 - random(0, 9), range, 130, 45);
         }
     }
 }
@@ -185,23 +187,4 @@ void moveRange(uint8_t lower, uint8_t upper, uint8_t steps)
             leds[k].subtractFromRGB(value);
         }
     }
-}
-
-void newHues(uint8_t min_diff)
-{
-    uint8_t old_hue = base_hue1;
-    base_hue1 = old_hue + min_diff + random(0, 255 - (2 * min_diff));      // Generate a random integer for the first variable
-    base_hue2 = base_hue1 + min_diff + random(0, 255 - (2 * min_diff)); // Generate a random integer for the second variable
-    base_hue3 = base_hue2 + min_diff + random(0, 255 - (2 * min_diff)); // Generate a random integer for the second variable
-
-        if (reporting)
-        {
-            Serial.println();
-            Serial.print("Hue1: ");
-            Serial.print(base_hue1);
-            Serial.print(", Hue2: ");
-            Serial.print(base_hue2);
-            Serial.print(", delta = ");
-            Serial.println(abs(base_hue1 - base_hue2));
-        }
 }
