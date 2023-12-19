@@ -10,8 +10,8 @@
 OneButton btn = OneButton(BTN_PIN, true, true);
 
 // ################## matrix ###################
-const uint8_t kMatrixWidth  = 8;
-const uint8_t kMatrixHeight = 13;
+const uint8_t kMatrixWidth  = 10;
+const uint8_t kMatrixHeight = 11;
 
 #define NUM_LEDS kMatrixWidth * kMatrixHeight
 CRGB leds[NUM_LEDS];
@@ -19,10 +19,10 @@ CRGB leds[NUM_LEDS];
 boolean coil = true;
 boolean flip = false;
 boolean ser_col = true;
-boolean prototyping = true;
+boolean prototyping = false;
 
 // ################## config ###################
-uint8_t hurry = 6;
+uint8_t hurry = 16;
 boolean dataSmoothing = true;
 
 // three brightness values to choose via button
@@ -32,12 +32,12 @@ uint8_t Bri3 = 86;
 
 // prameters for initial palette selection
 uint8_t base_hue1 = 20;  // first hue
-uint8_t base_hue2 = 10; // second hue
+uint8_t base_hue2 = 120; // second hue
 uint8_t range = 5;       // fluctuation
 
 // parameter for moving the lit area
 uint16_t lower = 0;        // lower end of lights
-uint16_t upper = NUM_LEDS - 4; // upper end of lights
+uint16_t upper = NUM_LEDS; // upper end of lights
 uint16_t store, up_speed, lo_speed, bri_speed;
 
 // ################## inits ###################

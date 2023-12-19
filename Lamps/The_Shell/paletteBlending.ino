@@ -2,11 +2,8 @@ uint8_t list[] = {0, 1, 2, 3};
 
 void triggerRoll(int roll_speed)
 {
-    Serial.println();
-    Serial.print("triggered roll with: ");
-    Serial.print(list[0]); Serial.print(list[1]); Serial.print(list[2]); Serial.println(list[3]);
 
-    // randomize the order of the colors
+    //randomize the order of the colors
     for (int i = 0; i < 4; ++i)
     {
         int r = random(i, 4);
@@ -15,46 +12,47 @@ void triggerRoll(int roll_speed)
         list[r] = temp;
     }
 
+    Serial.println();
+    Serial.print("triggered roll with: ");
+    Serial.print(list[0]);
+    Serial.print(list[1]);
+    Serial.print(list[2]);
+    Serial.println(list[3]);
+
+    for (int i = 0; i < 4; i++)
+    {
+        newCol2[i] = newCol[list[i]];
+    }
+
+    rolling = true;
+
     // start interpolation of blending function
     palRamp1.go(255, roll_speed * 0.65, LINEAR);
     palRamp2.go(255, roll_speed, LINEAR);
-
-    rolling = true;
 }
 
 void rollColors()
 {
-    // announce the great achievement
-    if (rolling)
-    {
-        Serial.println("rolling ...");
-        rolling = false;
-    }
+    runCol[0] = blend(oldCol[0], newCol2[0], palRamp1.update());
+    runCol[1] = blend(oldCol[1], newCol2[1], palRamp2.update());
+    runCol[2] = blend(oldCol[2], newCol2[2], palRamp1.update());
+    runCol[3] = blend(oldCol[3], newCol2[3], palRamp2.update());
 
-    // colors with odd index (1 & 3) are blended with palRamp1
-    // colors with even index (0 & 2) are blended with palRamp2
-    col[0] = nblend(col[0], pal[list[0]], palRamp1.update());
-    col[1] = nblend(col[1], pal[list[1]], palRamp2.update());
-    col[2] = nblend(col[2], pal[list[2]], palRamp1.update());
-    col[3] = nblend(col[3], pal[list[3]], palRamp2.update());
-
-    // for (int i = 0; i < 4; ++i)
-    // {
-    //     if (i % 2 == 0)
-    //     {
-    //         col[i] = nblend(col[i], pal[list[i]], palRamp2.update());
-    //     }
-    //     else
-    //     {
-    //         col[i] = nblend(col[i], pal[list[i]], palRamp1.update());
-    //     }
-    // }
 
     // after the slower ramp is done, we terminate the color blending and re-set
-    if (palRamp2.isFinished() == 1)
+    if (palRamp2.isFinished() == 1 && rolling == true)
     {
+        for (int i = 0; i < 4; i++)
+        {
+            tmpCol[i] = newCol2[i];
+            newCol2[i] = oldCol[i];
+            oldCol[i] = tmpCol[i];
+        }
+
         palRamp1.go(0, 0, NONE);
         palRamp2.go(0, 0, NONE);
+        
+        rolling = false;
     }
 
     // when a palette change was called, the brightness dips down, so we need to

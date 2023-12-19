@@ -38,7 +38,6 @@ void buttonSwitches()
         break;
 
     case 2:
-
         if (pressed)
         {
             TargetBri = Bri3;
@@ -111,6 +110,8 @@ void paletteButton()
         rainbow = false;
     }
 
+    briRamp.go(0, 125, QUINTIC_IN);
+
     newHues(30);
     range = random(5, 15);
     buildPalette(range, true, triple, sat_range, bri_range);
@@ -121,5 +122,4 @@ void paletteButton()
 
     palette_changed = true;
     stored_bri = CurrentBri;
-    briRamp.go(0, 100, LINEAR);
 }

@@ -15,7 +15,7 @@ void buttonSwitches()
         up_speed = 1000;
 
         lower = 0;                     // lower end of lights
-        upper = NUM_LEDS; // upper end of lights
+        upper = NUM_LEDS - 4; // upper end of lights
         break;
     case 1:
         TargetBri = Bri2;
@@ -24,7 +24,7 @@ void buttonSwitches()
         up_speed = 1000;
 
         lower = 0;            // lower end of lights
-        upper = NUM_LEDS; // upper end of lights
+        upper = NUM_LEDS - 4; // upper end of lights
         break;
     case 2:
         TargetBri = Bri3;
