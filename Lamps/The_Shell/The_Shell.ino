@@ -1,9 +1,9 @@
 #include <FastLED.h>
 #include <Ramp.h>
 #include <OneButton.h>
-//#include <Adafruit_DotStar.h>
+#include <Adafruit_DotStar.h>
 
-//Adafruit_DotStar strip(DOTSTAR_NUM, PIN_DOTSTAR_DATA, PIN_DOTSTAR_CLK, DOTSTAR_BRG);
+Adafruit_DotStar strip(DOTSTAR_NUM, PIN_DOTSTAR_DATA, PIN_DOTSTAR_CLK, DOTSTAR_BRG);
 
 // Pin definitions
 #define LED_PIN 5
@@ -13,8 +13,8 @@
 OneButton btn = OneButton(BTN_PIN, true, true);
 
 // ################## matrix ###################
-const uint8_t kMatrixWidth  = 9;
-const uint8_t kMatrixHeight = 14;
+const uint8_t kMatrixWidth  = 10;
+const uint8_t kMatrixHeight = 13;
 
 #define NUM_LEDS kMatrixWidth * kMatrixHeight
 CRGB leds[NUM_LEDS];
@@ -28,7 +28,7 @@ boolean pressed = false;
 boolean rainbow = false;
 
 // ################## config ###################
-uint8_t hurry = 5;
+uint8_t hurry = 6;
 boolean dataSmoothing = true;
 
 boolean rolling = false;
@@ -46,7 +46,7 @@ uint8_t base_hue2 = 50; // second hue
 uint8_t base_hue3 = base_hue2; // second hue
 uint8_t range = 10;       // fluctuation
 uint8_t sat_range = 55;
-uint8_t bri_range = 45;
+uint8_t bri_range = 155;
 
 // parameter for moving the lit area
 uint16_t lower = 0;    // lower end of lights
@@ -80,9 +80,9 @@ rampLong lumRampX, lumRampY, colRampX, colRampY; // smooth luminance scale blend
 // ################## SETUP ####################
 void setup() {
   // turn off onboard LED
-  // strip.begin(); 
-  // strip.setBrightness(0);
-  // strip.show(); // Turn all LEDs off ASAP
+  strip.begin(); 
+  strip.setBrightness(0);
+  strip.show(); // Turn all LEDs off ASAP
 
   delay(1000); // startup safety delay
   
@@ -107,7 +107,7 @@ void setup() {
   for (int i = 0; i < 4; i++)
   {
     noiRampMin[i] = 2000;
-    noiRampMax[i] = 10000;
+    noiRampMax[i] = 12000;
     xyVals[i]     = random(10000);
   }
 
@@ -171,7 +171,7 @@ void loop() {
   btn.tick();
 }
 
-bool isColorEqual(const CRGB &color1, const CRGB &color2)
-{
-  return (color1.r == color2.r && color1.g == color2.g && color1.b == color2.b);
-}
+// bool isColorEqual(const CRGB &color1, const CRGB &color2)
+// {
+//   return (color1.r == color2.r && color1.g == color2.g && color1.b == color2.b);
+// }

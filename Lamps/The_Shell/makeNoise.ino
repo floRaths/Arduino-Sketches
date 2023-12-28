@@ -34,7 +34,7 @@ void makeNoise()
         colRampX.update(),   // scalex
         xyVals[3],           // y
         colRampY.update(),   // scalex
-        millis() * hurry / 2 // timeVal
+        millis() * 4 // timeVal
     );
 
     CRGBPalette16 runPal = CRGBPalette16(runCol[0], runCol[1], runCol[2], runCol[3]);

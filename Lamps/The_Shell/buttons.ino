@@ -60,7 +60,7 @@ void brightnessAreaButton()
 
     lowerRamp.go(lower, lo_speed, CIRCULAR_INOUT);
     upperRamp.go(upper, up_speed, CIRCULAR_INOUT);
-    //changeScales(30000);
+    
     Serial.println(noiRampMin[0]);
 }
 
@@ -110,6 +110,7 @@ void paletteButton()
         rainbow = false;
     }
 
+    stored_bri = CurrentBri;
     briRamp.go(0, 125, QUINTIC_IN);
 
     newHues(30);
@@ -121,5 +122,4 @@ void paletteButton()
     changeScales(10000);
 
     palette_changed = true;
-    stored_bri = CurrentBri;
 }

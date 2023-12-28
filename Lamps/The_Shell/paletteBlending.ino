@@ -61,7 +61,7 @@ void rollColors()
     {
         palette_changed = false;
         briRamp.go(stored_bri, 1500, LINEAR);
-        
+
         if (indexDrift == false) {
             paletteIndex = 0;
             Serial.println("resetting palIndex");
