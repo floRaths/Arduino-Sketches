@@ -119,14 +119,16 @@ void setup()
   randomSeed(analogRead(0));
 
   FastLED.addLeds<WS2812B, 5, GRB>(leds, NUM_LEDS);
+  FastLED.setBrightness(255);
 }
 
 void loop()
 {
-  FastLED.clear();
+  fill_solid(leds, NUM_LEDS, CRGB::Red);
+  //FastLED.clear();
 
-  updateFlowField();
-  updateParticles();
+  // updateFlowField();
+  // updateParticles();
 
   FastLED.show();
   delay(30);

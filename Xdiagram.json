@@ -3,7 +3,7 @@
   "author": "Uri Shaked",
   "editor": "wokwi",
   "parts": [
-    { "type": "wokwi-arduino-uno", "id": "uno", "top": 20, "left": 50, "attrs": {} },
+    { "type": "wokwi-arduino-mega", "id": "uno", "top": 20, "left": 50, "attrs": {} },
     { "type": "wokwi-lcd1602", "id": "lcd", "top": 252, "left": 50, "attrs": { "pins": "i2c" } }
   ],
   "connections": [
