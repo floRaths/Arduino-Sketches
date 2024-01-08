@@ -159,7 +159,7 @@ void buildPalette(uint8_t range, bool change_all, bool triple, uint8_t sat_range
     }
     else // only change some colors
     {
-        coin = random(10);
+        uint8_t coin = random(10);
         if ((coin % 2) == 0)
         {
             Serial.print("Pal0 = ");
@@ -189,6 +189,28 @@ void buildPalette(uint8_t range, bool change_all, bool triple, uint8_t sat_range
             {
                 newCol[3] = makeColor(base_hue2, range, sat_range * 2.3, bri_range * 3);
             }
+        }
+    }
+}
+
+void buildPalette2(uint8_t range, bool change_all, bool triple, uint8_t sat_range, uint8_t bri_range)
+{
+    for (int i = 0; i < 4; ++i)
+    {
+        if (change_all || random(10) % 2 == 0)
+        {
+            Serial.print("Pal" + String(i) + " = ");
+
+            uint8_t base_hue;
+            switch (i)
+            {
+            case 0: base_hue = base_hue1; break;
+            case 1: base_hue = base_hue1; break;
+            case 2: base_hue = base_hue2; break;
+            case 3: base_hue = triple ? base_hue3 : base_hue2; break;
+            }
+
+            newCol[i] = makeColor(base_hue, range, (i == 0 || i == 3) ? sat_range * 2.3 : sat_range, (i == 0 || i == 3) ? bri_range * 3 : bri_range);
         }
     }
 }

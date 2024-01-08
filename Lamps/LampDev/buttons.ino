@@ -1,19 +1,13 @@
 void buttonSwitches()
 {
-    CurrentBri = briRamp.update();
-    bri_speed = 750;
-    lo_speed = 1000;
-    up_speed = 1000;
-
     switch (switchBrightness)
     {
     case 0:
         if (pressed)
         {
             TargetBri = Bri1;
-
             lower = 0;            // lower end of lights
-            upper = NUM_LEDS - 4; // upper end of lights
+            upper = NUM_LEDS; // upper end of lights
 
             pressed = false;
         }
@@ -23,9 +17,8 @@ void buttonSwitches()
         if (pressed)
         {
             TargetBri = Bri2;
-
             lower = 0;            // lower end of lights
-            upper = NUM_LEDS - 4; // upper end of lights
+            upper = NUM_LEDS; // upper end of lights
 
             pressed = false;
         }
@@ -35,7 +28,6 @@ void buttonSwitches()
         if (pressed)
         {
             TargetBri = Bri3;
-
             lower = 0;  // lower end of lights
             upper = 20; // upper end of lights
         
@@ -47,6 +39,10 @@ void buttonSwitches()
 
 void brightnessAreaButton()
 {
+    bri_speed = 750;
+    lo_speed = 1000;
+    up_speed = 1000;
+
     pressed = true;
     switchBrightness = (switchBrightness + 1) % 3;
 
@@ -54,8 +50,6 @@ void brightnessAreaButton()
 
     lowerRamp.go(lower, lo_speed, CIRCULAR_INOUT);
     upperRamp.go(upper, up_speed, CIRCULAR_INOUT);
-    
-    Serial.println(noiRampMin[0]);
 }
 
 // Picks new colors, then triggers color blending and goes dark,

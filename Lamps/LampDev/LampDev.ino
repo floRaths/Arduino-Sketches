@@ -134,7 +134,7 @@ void loop() {
 
   moveRange(lowerRamp.update(), upperRamp.update(), 8);
   fadeToBlackBy(leds, NUM_LEDS, 64);
-  FastLED.setBrightness(CurrentBri);
+  FastLED.setBrightness(briRamp.update());
   FastLED.show();
   btn.tick();
 }
