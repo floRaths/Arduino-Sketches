@@ -1,6 +1,5 @@
 uint8_t mtx(uint8_t x, uint8_t y)
 {
-
     // any out of bounds address maps to the first hidden pixel
     if ((x >= kMatrixWidth) || (y >= kMatrixHeight))
     {
@@ -13,7 +12,6 @@ uint8_t mtx(uint8_t x, uint8_t y)
     {
         i = (y * kMatrixWidth) + x;
     }
-
     else
     {
         if (ser_col == true)
@@ -50,7 +48,6 @@ uint8_t mtx(uint8_t x, uint8_t y)
     {
         i = NUM_LEDS - 1 - i;
     }
-
     return i;
 }
 
@@ -196,18 +193,6 @@ void buildPalette(uint8_t range, bool change_all, bool triple, uint8_t sat_range
     }
 }
 
-uint8_t expandAndTrack(uint8_t input, int &maxValue, uint8_t buffer)
-{
-    // To increase contrast, update the maximum value if the input is higher
-    if (input > maxValue)
-    {
-        maxValue = input; // Update the maximum value to the highest found in the frame
-    }
-
-    // Expand the value accordingly to the determined max value (+ 5 to reduce clipping).
-    return map(input, 0, maxValue + buffer, 0, 255);
-}
-
 void moveRange(uint8_t lower, uint8_t upper, uint8_t steps)
 {
     for (int i = upper; i < NUM_LEDS; i++)
@@ -334,4 +319,16 @@ void rollColors()
 bool isColorEqual(const CRGB &color1, const CRGB &color2)
 {
     return (color1.r == color2.r && color1.g == color2.g && color1.b == color2.b);
+}
+
+uint8_t expandAndTrack(uint8_t input, int &maxValue, uint8_t buffer)
+{
+    // To increase contrast, update the maximum value if the input is higher
+    if (input > maxValue)
+    {
+        maxValue = input; // Update the maximum value to the highest found in the frame
+    }
+
+    // Expand the value accordingly to the determined max value (+ 5 to reduce clipping).
+    return map(input, 0, maxValue + buffer, 0, 255);
 }

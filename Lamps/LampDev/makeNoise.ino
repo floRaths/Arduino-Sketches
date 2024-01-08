@@ -32,36 +32,34 @@ void makeNoise()
     {
         for (int y = 0; y < kMatrixHeight; y++)
         {
-            if (lumNoise[x][y] > maxValue)
-            {
-                maxValue = lumNoise[x][y]; // Update the maximum value to the highest found in the frame
-            }
+            // Find the greatest brightness value in the frame and store it
+            if (lumNoise[x][y] > maxLumValue)
+            { maxLumValue = lumNoise[x][y]; }
 
-            scaledData[x][y] = qadd8(lumNoise[x][y], scale8(lumNoise[x][y], maxValue));
+            // upscale the data realtive to the max value
+            scaled_lumData[x][y] = qadd8(lumNoise[x][y], scale8(lumNoise[x][y], maxLumValue));
 
             if (dataSmoothing)
             {
-                uint8_t  olddata = data[x][y];
-                uint16_t newdata = (uint16_t)olddata * (256 - 128) + (uint16_t)scaledData[x][y] * 128;
-                data[x][y] = newdata / 256; // Convert back to uint8_t
+                uint8_t  old_lumData = lumData[x][y];
+                uint16_t new_lumData = (uint16_t)old_lumData * (256 - 128) + (uint16_t)scaled_lumData[x][y] * 128;
+                lumData[x][y] = new_lumData / 256; // Convert back to uint8_t
 
-                uint8_t Colddata = Cdata[x][y];
-                uint16_t Cnewdata = (uint16_t)Colddata * (256 - 128) + (uint16_t)colNoise[x][y] * 128;
-                Cdata[x][y] = Cnewdata / 256; // Convert back to uint8_t
+                uint8_t old_colData = colData[x][y];
+                uint16_t new_colData = (uint16_t)old_colData * (256 - 128) + (uint16_t)colNoise[x][y] * 128;
+                colData[x][y] = new_colData / 256; // Convert back to uint8_t
             }
             else
             {
-                data[x][y] = scaledData[x][y];
-                Cdata[x][y] = colNoise[x][y];
+                lumData[x][y] = scaled_lumData[x][y];
+                colData[x][y] = colNoise[x][y];
             }
 
             leds[mtx(x, y)] = ColorFromPalette(runPal,
                                                // noiseCols[(y * kMatrixWidth) + x], // when used with 1D colors
-                                               // colNoise[x][y] + paletteIndex,
-                                               Cdata[x][y] + paletteIndex,
-                                               // data[x][y]);
-                                               brighten8_lin(data[x][y]));
-            // dim8_raw(data[x][y]));
+                                               colData[x][y] + paletteIndex,
+                                               brighten8_lin(lumData[x][y])
+                                               );
         }
     }
 }

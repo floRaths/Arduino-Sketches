@@ -31,16 +31,16 @@ rampInt briRamp, palRamp1, palRamp2;             // smooth palette blending 1
 ramp lowerRamp, upperRamp;                       // smooth area blending 1
 rampLong lumRampX, lumRampY, colRampX, colRampY; // smooth luminance scale blending on X
 
-// two arrays holding the noise data for colors and luminosity
+// arrays holding the raw, intermediate and final noise data for colors and luminosity
 uint8_t lumNoise[kMatrixHeight][kMatrixHeight];
-uint8_t scaledData[kMatrixHeight][kMatrixHeight];
-uint8_t data[kMatrixHeight][kMatrixHeight];
+uint8_t adj_lumData[kMatrixHeight][kMatrixHeight];
+uint8_t scaled_lumData[kMatrixHeight][kMatrixHeight];
 
 uint8_t colNoise[kMatrixHeight][kMatrixHeight];
-uint8_t CscaledData[kMatrixHeight][kMatrixHeight];
-uint8_t Cdata[kMatrixHeight][kMatrixHeight];
+uint8_t adj_colData[kMatrixHeight][kMatrixHeight];
+//uint8_t scaled_colData[kMatrixHeight][kMatrixHeight];
 
-int maxValue = 0; // Assume the first element is the maximum
+int maxLumValue = 0; // Assume the first element is the maximum
 
 uint8_t list[] = {0, 1, 2, 3};
 
