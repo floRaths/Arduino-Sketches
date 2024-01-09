@@ -1,135 +1,59 @@
 #include <FastLED.h>
 
-boolean coil = true;
-boolean flip = false;
-boolean ser_col = true;
-
-#define LED_PIN 6
-#define kMatrixWidth 15
-#define kMatrixHeight 15
-#define NUM_PARTICLES 35
-#define NUM_LEDS kMatrixWidth *kMatrixHeight
-
-CRGB leds[kMatrixWidth * kMatrixHeight];
-
-//uint8_t flowField[kMatrixWidth][kMatrixHeight];
-
-float xOff = 0.0;
-float yOff = 0.0;
-float noiseScale = 0.1;
-
-struct Vector
-{
-  float x;
-  float y;
-
-  // Default constructor
-  Vector() : x(0.0), y(0.0) {}
-
-  // Parameterized constructor
-  Vector(float x_, float y_) : x(x_), y(y_) {}
-
-  float magnitude()
-  {
-    return sqrt(x * x + y * y);
-  }
-
-  void normalize()
-  {
-    float mag = magnitude();
-    if (mag != 0)
-    {
-      x /= mag;
-      y /= mag;
-    }
-  }
-};
-
-Vector flowField[kMatrixWidth][kMatrixHeight];
-
-void generateFlowField()
-{
-  float xOff = 0.0;
-  float yOff = 0.0;
-  float noiseScale = 0.1;
-
-  for (int x = 0; x < kMatrixWidth; x++)
-  {
-    for (int y = 0; y < kMatrixHeight; y++)
-    {
-      float angle = inoise8(xOff, yOff) * TWO_PI * 2.0;
-      flowField[x][y] = {cos(angle), sin(angle)}; // Initialize using curly braces
-      flowField[x][y].normalize();
-      yOff += noiseScale;
-    }
-    xOff += noiseScale;
-  }
-}
-
-class Particle
-{
-public:
-  float x, y;
-  Particle()
-  {
-    x = random(kMatrixWidth);
-    y = random(kMatrixHeight);
-  }
-
-  void move()
-  {
-    int nearestX = int(x);
-    int nearestY = int(y);
-
-    // Move towards the closest vector in the flow field
-    x += flowField[nearestX][nearestY].x;
-    y += flowField[nearestX][nearestY].y;
-
-    // Wrap around the edges
-    x = fmod(x, kMatrixWidth);
-    y = fmod(y, kMatrixHeight);
-  }
-
-  void display()
-  {
-    leds[mtx(x, y)] = CRGB::White;
-  }
-};
-
-Particle particles[NUM_PARTICLES];
-
-void updateFlowField()
-{
-  generateFlowField();
-}
-
-void updateParticles()
-{
-  for (int i = 0; i < NUM_PARTICLES; i++)
-  {
-    particles[i].move();
-    particles[i].display();
-  }
-}
+uint8_t colA, colB, colC, colD;
 
 // ################## SETUP ####################
 void setup()
 {
   Serial.begin(115200);
-  randomSeed(analogRead(0));
-
-  FastLED.addLeds<WS2812B, 5, GRB>(leds, NUM_LEDS);
-  FastLED.setBrightness(255);
 }
+
 
 void loop()
 {
-  fill_solid(leds, NUM_LEDS, CRGB::Red);
-  //FastLED.clear();
+  EVERY_N_MILLISECONDS(500)
+  {
+    generateNewHues(colA, colB, colC, colD, 30);
 
-  // updateFlowField();
-  // updateParticles();
+    Serial.println("generated");
+    Serial.println(colA);
+    // Serial.println(colB);
+    // Serial.println(colC);
+    // Serial.println(colD);
+  }
+}
 
-  FastLED.show();
-  delay(30);
+// Helper function to test if two hues are separate by a desired distance
+bool testDistance(uint8_t num1, uint8_t num2, uint8_t minDistance)
+{
+  uint8_t test1 = num1 - num2;
+  uint8_t test2 = num2 - num1;
+  return (test1 <= minDistance) || (test2 <= minDistance);
+}
+
+
+// Function to generate three random values with a defined minimum separation
+void generateNewHues(uint8_t &hue_A, uint8_t &hue_B, uint8_t &hue_C, uint8_t &hue_D, const uint8_t minDistance)
+{
+  uint8_t hue_old = hue_A;
+
+  do // Generate the first color
+  {
+    hue_A = random(256);
+  } while (testDistance(hue_A, hue_old, minDistance));
+
+  do // Generate the second color
+  {
+    hue_B = random(256);
+  } while (testDistance(hue_B, hue_A, minDistance));
+
+  do // Generate the third color
+  {
+    hue_C = random(256);
+  } while (testDistance(hue_C, hue_A, minDistance) || testDistance(hue_C, hue_B, minDistance));
+
+  do // Generate the fourth color
+  {
+    hue_D = random(256);
+  } while (testDistance(hue_D, hue_A, minDistance) || testDistance(hue_D, hue_B, minDistance) || testDistance(hue_D, hue_C, minDistance));
 }

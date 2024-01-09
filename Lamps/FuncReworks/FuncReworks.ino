@@ -5,14 +5,21 @@ void setup() {}
 
 void loop() {
 
-    // uint8_t satRange[2] = {50, 100}; // Example saturation range
-    // uint8_t briRange[2] = {20, 80};  // Example brightness range
+    switch (colorScheme)
+    {
+    case 0: // monochrome
+        color[0] = {base_hue1, 10, 255, 0, 255};
+        color[1] = {base_hue1, 10, 255, 0, 255};
+        color[2] = {base_hue1, 10, 255, 0, 255};
+        color[3] = {base_hue1, 10, 255, 0, 255};
+        break;
 
-    Range satRange = {50, 100}; // Example saturation range
-    Range briRange = {20, 80};  // Example brightness range
+    case 1: // duotone
+        color[0] = {base_hue1, 10, 255, 0, 255};
+        color[1] = {base_hue1, 10, 255, 0, 255};
+        color[2] = {base_hue2, 10, 255, 0, 255};
+        color[3] = {base_hue2, 10, 255, 0, 255};
+        break;
+    }
 
-    CHSV myColor = makeColors(120, 10, satRange, briRange);
-    
-
-    //fill_raw_2dnoise8();
 }
