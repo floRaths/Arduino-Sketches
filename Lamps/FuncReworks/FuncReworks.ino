@@ -1,6 +1,17 @@
 #include <FastLED.h>
 #include "auxFnss/auxFnss.h"
 
+uint8_t hue_A = 10;
+uint8_t hue_B = 10;
+uint8_t hue_C = 10;
+uint8_t hue_D = 10;
+
+uint8_t colorScheme;
+
+CRGB newCol[4];
+
+colorProperty color[4];
+
 void setup() {}
 
 void loop() {

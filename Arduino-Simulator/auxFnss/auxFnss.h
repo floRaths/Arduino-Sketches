@@ -1,3 +1,16 @@
+// Struct to hold info on color ranges in order to request certain palette types
+struct colorProperty
+{
+    uint8_t hue;
+    uint8_t hueFluct;
+    uint8_t satMin;
+    uint8_t satMax;
+    uint8_t briMin;
+    uint8_t briMax;
+};
+
+colorProperty color[4];
+CRGB newCol[4];
 
 // Helper function to test if two hues are separate by a desired distance
 bool testDistance(uint8_t first_hue, uint8_t second_hue, uint8_t minDistance)
@@ -8,7 +21,7 @@ bool testDistance(uint8_t first_hue, uint8_t second_hue, uint8_t minDistance)
 }
 
 // Function to generate three random values with a defined minimum separation
-void generateNewHues(uint8_t &hue_A, uint8_t &hue_B, uint8_t &hue_C, uint8_t &hue_D, const uint8_t minDistance)
+void generateNewHues(uint8_t &hue_A, uint8_t &hue_B, uint8_t &hue_C, uint8_t &hue_D, const uint8_t minDistance, bool reporting = false)
 {
     uint8_t hue_old = hue_A;
 
@@ -31,19 +44,23 @@ void generateNewHues(uint8_t &hue_A, uint8_t &hue_B, uint8_t &hue_C, uint8_t &hu
     {
         hue_D = random(256);
     } while (testDistance(hue_D, hue_A, minDistance) || testDistance(hue_D, hue_B, minDistance) || testDistance(hue_D, hue_C, minDistance));
+
+    if (reporting)
+    {
+        Serial.println();
+        Serial.print("Hues (A,B,C,D): ");
+        Serial.print(hue_A);
+        Serial.print(", ");
+        Serial.print(hue_B);
+        Serial.print(", ");
+        Serial.print(hue_C);
+        Serial.print(", ");
+        Serial.println(hue_D);
+    }
 }
 
-uint8_t hue_A = 10;
-uint8_t hue_B = 10;
-uint8_t hue_C = 10;
-uint8_t hue_D = 10;
-
-uint8_t colorScheme;
-
-CRGB newCol[4];
-
-
-CHSV colorFromRange(uint8_t baseHue, uint8_t hue_fluct, uint8_t sat_min, uint8_t sat_max, uint8_t bri_min, uint8_t bri_max)
+// Function to build a CHSV color from a predefined set of input ranges for hue, sat, bri
+CHSV colorFromRange(uint8_t baseHue, uint8_t hue_fluct, uint8_t sat_min, uint8_t sat_max, uint8_t bri_min, uint8_t bri_max, bool reporting = false)
 {
     // Validate ranges
     if (sat_min > sat_max || bri_min > bri_max)
@@ -57,23 +74,22 @@ CHSV colorFromRange(uint8_t baseHue, uint8_t hue_fluct, uint8_t sat_min, uint8_t
     uint8_t sat = random(sat_min, sat_max + 1);
     uint8_t bri = random(bri_min, bri_max + 1);
 
+    if (reporting)
+    {
+        Serial.print(hue);
+        Serial.print(", ");
+        Serial.print(sat);
+        Serial.print(", ");
+        Serial.print(bri);
+        Serial.println("");
+    }
+
     CHSV color = CHSV(hue, sat, bri);
     return color;
 }
 
-
-struct colorProperty
-{
-    uint8_t hue;
-    uint8_t satMin;
-    uint8_t satMax;
-    uint8_t briMin;
-    uint8_t briMax;
-};
-
-colorProperty color[4];
-
-void buildPalette(uint8_t hueFluct, bool change_all)
+// Assembles a new 4-color palette from a set of instructions. Can be set to only assemble random subcolors
+void assemblePalette(bool change_all, bool reporting = false)
 {
     for (int i = 0; i < 4; ++i)
     {
@@ -81,11 +97,12 @@ void buildPalette(uint8_t hueFluct, bool change_all)
         {
             Serial.print("Pal" + String(i) + " = ");
             newCol[i] = colorFromRange(color[i].hue,
-                                       hueFluct,
+                                       color[i].hueFluct,
                                        color[i].satMin,
                                        color[i].satMax,
                                        color[i].briMin,
-                                       color[i].briMax);
+                                       color[i].briMax, 
+                                       reporting);
         }
     }
 }
