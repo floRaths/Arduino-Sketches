@@ -98,7 +98,7 @@ void assemblePalette(CRGB *newColors, colorType colorInstruction[4], bool change
     {
         if (change_all || random(10) % 2 == 0)
         {
-            Serial.print("Pal" + String(i) + " = ");
+            if (reporting) { Serial.print("Pal" + String(i) + " = ");}
             newColors[i] = colorFromRange(colorInstruction[i].hue,
                                           colorInstruction[i].hueFluct,
                                           colorInstruction[i].satMin,
@@ -110,14 +110,16 @@ void assemblePalette(CRGB *newColors, colorType colorInstruction[4], bool change
     }
 }
 
-rampInt blendRamp1, blendRamp2;
+ramp blendRamp1, blendRamp2;
 bool blending, stored_colors;
 uint8_t list[] = {0, 1, 2, 3};
-CRGB newCol[4], runCol[4], oldColor[4], tmpColor[4], shuffledColor[4];
+CRGB newCol[4], runCol[4], oldColor[4], shuffledColor[4];
 
 // triggers a color blend event
-void triggerBlend(int blend_speed)
+void triggerBlend(int blend_speed, bool reporting = false)
 {
+    if (reporting) { Serial.println("triggered");}
+
     blending = true;
     stored_colors = false;
     
@@ -160,36 +162,30 @@ void blendColors(CRGB *runningColor, CRGB *newColor, bool shuffle = true)
     if (blending == true && stored_colors == false)
     {
         // if requested, the colors will be shuffled
-        if(shuffle) {
+        if (shuffle)
+        {
             shuffleColors(newColor);
         }
-        // // the previous running colors are stored in an array thats used for blending
-        // for (int i = 0; i < 4; i++)
-        // {
-        //     oldColor[i] = runningColor[i];
-        // }
-        stored_colors = true; // terminates the process
-    }
-
-    runningColor[0] = blend(oldColor[0], newColor[0], blendRamp1.update());
-    runningColor[1] = blend(oldColor[1], newColor[1], blendRamp2.update());
-    runningColor[2] = blend(oldColor[2], newColor[2], blendRamp1.update());
-    runningColor[3] = blend(oldColor[3], newColor[3], blendRamp2.update());
-
-    // after the slower ramp is done, we terminate the color blending and re-set
-    if (blendRamp2.isFinished() == 1 && blending == true)
-    {
-        // swap new and old colors, so we can re-set the ramps to 0 (otherwise you see black flash)
+        // the previous running colors are stored in an array thats used for blending
         for (int i = 0; i < 4; i++)
         {
-            tmpColor[i] = newColor[i];
-            newColor[i] = oldColor[i];
-            oldColor[i] = tmpColor[i];
+            oldColor[i] = runningColor[i];
         }
-        // bring blending ramps back to 0
-        blendRamp1.go(0, 0, NONE);
-        blendRamp2.go(0, 0, NONE);
-
-        blending = false;
+        stored_colors = true; // terminates the process
     }
-}
+    
+    if (blendRamp2.isRunning() == 1 )
+    {
+        runningColor[0] = blend(oldColor[0], newColor[0], blendRamp1.update());
+        runningColor[1] = blend(oldColor[1], newColor[1], blendRamp2.update());
+        runningColor[2] = blend(oldColor[2], newColor[2], blendRamp1.update());
+        runningColor[3] = blend(oldColor[3], newColor[3], blendRamp2.update());
+    }
+        // after the slower ramp is done, we terminate the color blending and re-set
+        if (blendRamp2.isFinished() == 1 && blending == true)
+        {   // bring blending ramps back to 0
+            blendRamp1.go(0, 0, NONE);
+            blendRamp2.go(0, 0, NONE);
+            blending = false;
+        }
+    }

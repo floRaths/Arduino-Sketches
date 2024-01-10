@@ -12,9 +12,9 @@ void setup()
 
 void loop()
 {
-  EVERY_N_MILLISECONDS(1500)
+  EVERY_N_MILLISECONDS(2000)
   {
-    generateNewHues(hueA, hueB, hueC, hueD, 30, true);
+    generateNewHues(hueA, hueB, hueC, hueD, 30, false);
 
     // this is a monochrome palette instruction
     colorType[0] = {hueA, 10, 155, 255, 155, 255};
@@ -22,8 +22,8 @@ void loop()
     colorType[2] = {hueB, 10, 155, 255, 155, 255};
     colorType[3] = {hueB, 10, 155, 255, 155, 255};
 
-    assemblePalette(newCol, colorType, false, true);
-    triggerBlend(1000);
+    assemblePalette(newCol, colorType, true, false);
+    triggerBlend(1000, true);
   }
 
   blendColors(runCol, newCol, true);
