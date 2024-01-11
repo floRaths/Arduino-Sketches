@@ -17,14 +17,6 @@ struct scaleLimits
     int yMax;
 };
 
-struct palette
-{
-    CRGB newCol[4];
-    CRGB runCol[4]; 
-    CRGB oldCol[4];
-    
-};
-
 float random_float(float minValue, float maxValue)
 {
     float randomNumber = minValue + (random(0, 1001) / 1000.0) * (maxValue - minValue);
@@ -290,5 +282,20 @@ void changeScales(scaleLimits lumScales, scaleLimits colScales, int speed, bool 
         {
             Serial.println("Scales Changed");
         }
+    }
+}
+
+uint32_t xyVals[4];
+void initializePerlin (int scaleStartingPoint, int xyRandom) {
+
+    lumRampX.go(scaleStartingPoint, 0, LINEAR);
+    lumRampY.go(scaleStartingPoint, 0, LINEAR);
+    colRampX.go(scaleStartingPoint, 0, LINEAR);
+    colRampY.go(scaleStartingPoint, 0, LINEAR);
+
+    // random xy values for the noise field to ensure different starting points
+    for (int i = 0; i < 4; i++)
+    {
+        xyVals[i] = random(xyRandom);
     }
 }
