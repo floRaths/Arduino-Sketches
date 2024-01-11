@@ -1,12 +1,6 @@
-// Pin definitions
-#define LED_PIN 5
-#define NUM_LEDS 252
-CRGB leds[NUM_LEDS];
-
-
-uint8_t hueA, hueB, hueC, hueD;
-
+uint32_t xyVals[4];
+uint8_t paletteIndex;
 
 colorType colorType[4];
-
-
+palette palette;
+scaleLimits lumScales, colScales;
