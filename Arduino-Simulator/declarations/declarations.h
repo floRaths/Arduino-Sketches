@@ -2,7 +2,9 @@
 uint8_t paletteIndex, switchPalette;
 
 colorType colorType[4];
-scaleLimits lumScales, colScales;
+palette pal;
+//scaleLimits lumScales, colScales;
+scales scales;
 
 void paletteSelection()
 {
@@ -10,28 +12,31 @@ void paletteSelection()
     {
     case 0: // monochrome
     {
-        colorType[0] = {hueA, 10, 155, 255, 155, 255};
-        colorType[1] = {hueA, 10, 155, 255, 155, 255};
-        colorType[2] = {hueA, 10, 155, 255, 155, 255};
-        colorType[3] = {hueA, 10, 155, 255, 155, 255};
+        Serial.println("monochrome");
+        pal.col[0] = {hueA, 10, 155, 255, 155, 255};
+        pal.col[1] = {hueA, 10, 155, 255, 155, 255};
+        pal.col[2] = {hueA, 10, 155, 255, 155, 255};
+        pal.col[3] = {hueA, 10, 155, 255, 155, 255};
     }
     break;
 
     case 1: // duotone
     {
-        colorType[0] = {hueA, 10, 155, 255, 155, 255};
-        colorType[1] = {hueA, 10, 155, 255, 155, 255};
-        colorType[2] = {hueA, 10, 155, 255, 155, 255};
-        colorType[3] = {hueA, 10, 155, 255, 155, 255};
+        Serial.println("duotone");
+        pal.col[0] = {hueA, 10, 155, 255, 155, 255};
+        pal.col[1] = {hueA, 10, 155, 255, 155, 255};
+        pal.col[2] = {hueA, 10, 155, 255, 155, 255};
+        pal.col[3] = {hueA, 10, 155, 255, 155, 255};
     }
     break;
 
     case 2: // pastel
     {
-        colorType[0] = {hueA, 10, 155, 255, 155, 255};
-        colorType[1] = {hueA, 10, 155, 255, 155, 255};
-        colorType[2] = {hueA, 10, 155, 255, 155, 255};
-        colorType[3] = {hueA, 10, 155, 255, 155, 255};
+        Serial.println("pastel");
+        pal.col[0] = {hueA, 10, 155, 255, 155, 255};
+        pal.col[1] = {hueA, 10, 155, 255, 155, 255};
+        pal.col[2] = {hueA, 10, 155, 255, 155, 255};
+        pal.col[3] = {hueA, 10, 155, 255, 155, 255};
     }
     break;
     }

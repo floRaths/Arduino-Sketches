@@ -9,12 +9,26 @@ struct colorType
     uint8_t briMax;
 };
 
+struct palette
+{
+    colorType col[4];
+    CRGB newCol[4];
+    CRGB runCol[4];
+    CRGB oldCol[4];
+};
+
 struct scaleLimits
 {
     int xMin;
     int xMax;
     int yMin;
     int yMax;
+};
+
+struct scales
+{
+    scaleLimits lumScales;
+    scaleLimits colScales;
 };
 
 float random_float(float minValue, float maxValue)
@@ -101,30 +115,27 @@ CHSV colorFromRange(uint8_t baseHue, uint8_t hue_fluct, uint8_t sat_min, uint8_t
 }
 
 // Assembles a new 4-color palette from a set of instructions. Can be set to only assemble random subcolors
-void assemblePalette(CRGB *newColors, colorType colorInstruction[4], bool change_all, bool reporting = false)
+//void assemblePalette(CRGB *newColors, colorType colorInstruction[4], bool change_all, bool reporting = false) 
+void assemblePalette(palette &pllt, bool change_all, bool reporting = false)
 {
     for (int i = 0; i < 4; ++i)
     {
         if (change_all || random(10) % 2 == 0)
         {
             if (reporting) { Serial.print("Pal" + String(i) + " = ");}
-            newColors[i] = colorFromRange(colorInstruction[i].hue,
-                                          colorInstruction[i].hueFluct,
-                                          colorInstruction[i].satMin,
-                                          colorInstruction[i].satMax,
-                                          colorInstruction[i].briMin,
-                                          colorInstruction[i].briMax,
-                                          reporting);
+            pllt.newCol[i] = colorFromRange(pllt.col[i].hue,
+                                            pllt.col[i].hueFluct,
+                                            pllt.col[i].satMin,
+                                            pllt.col[i].satMax,
+                                            pllt.col[i].briMin,
+                                            pllt.col[i].briMax,
+                                            reporting);
         }
     }
 }
 
 ramp blendRamp1, blendRamp2;
 bool blending, stored_colors;
-uint8_t list[] = {0, 1, 2, 3};
-CRGB newCol[4];
-CRGB runCol[4];
-CRGB oldColor[4];
 
 // triggers a color blend event
 void triggerBlend(int blend_speed, bool reporting = false)
@@ -148,6 +159,7 @@ void triggerBlend(int blend_speed, bool reporting = false)
 // Takes an input color array and changes its order
 void shuffleColors(CRGB *inputColor) {
 
+    uint8_t list[] = {0, 1, 2, 3};
     CRGB tmpColor[4];
     // randomize the order of list items that will determine color order
     for (int i = 0; i < 4; ++i)
@@ -171,40 +183,32 @@ void shuffleColors(CRGB *inputColor) {
     }
 }
 
-void blendColors(CRGB *runningColor, CRGB *newColor, colorType colorInstruction[4], bool shuffle = true, bool change_all = true, bool reporting = false)
-//void blendColors(palette *colorPalette, colorType colorInstruction[4], bool shuffle = true, bool change_all = true, bool reporting = false)
+// Function to blend colors upon request
+void blendColors(palette &pllt, bool shuffle = true, bool change_all = true, bool reporting = false)
 {
     // some operations that only happen during first call of this function
     if (blending == true && stored_colors == false)
     {
-        assemblePalette(newColor, colorInstruction, change_all, reporting);
-        //assemblePalette(colorPalette.newCol, colorInstruction, change_all, reporting);
+        assemblePalette(pllt, change_all, reporting);
         // if requested, the colors will be shuffled
         if (shuffle)
         {
-            shuffleColors(newColor);
-            //shuffleColors(colorPalette.newCol);
+            shuffleColors(pllt.newCol);
         }
         // the previous running colors are stored in an array thats used for blending
         for (int i = 0; i < 4; i++)
         {
-            oldColor[i] = runningColor[i];
-            //colorPalette.oldCol[i] = colorPalette.runCol[i];
+            pllt.oldCol[i] = pllt.runCol[i];
         }
         stored_colors = true; // terminates the process
     }
     
-    if (blendRamp2.isRunning() == 1 )
+    if (blendRamp2.isRunning() == 1)
     {
-        runningColor[0] = blend(oldColor[0], newColor[0], blendRamp1.update());
-        runningColor[1] = blend(oldColor[1], newColor[1], blendRamp2.update());
-        runningColor[2] = blend(oldColor[2], newColor[2], blendRamp1.update());
-        runningColor[3] = blend(oldColor[3], newColor[3], blendRamp2.update());
-
-        // colorPalette.runCol[0] = blend(colorPalette.oldCol[0], colorPalette.newCol[0], blendRamp1.update());
-        // colorPalette.runCol[1] = blend(colorPalette.oldCol[1], colorPalette.newCol[1], blendRamp2.update());
-        // colorPalette.runCol[2] = blend(colorPalette.oldCol[2], colorPalette.newCol[2], blendRamp1.update());
-        // colorPalette.runCol[3] = blend(colorPalette.oldCol[3], colorPalette.newCol[3], blendRamp2.update());
+        pllt.runCol[0] = blend(pllt.oldCol[0], pllt.newCol[0], blendRamp1.update());
+        pllt.runCol[1] = blend(pllt.oldCol[1], pllt.newCol[1], blendRamp2.update());
+        pllt.runCol[2] = blend(pllt.oldCol[2], pllt.newCol[2], blendRamp1.update());
+        pllt.runCol[3] = blend(pllt.oldCol[3], pllt.newCol[3], blendRamp2.update());
     }
         // after the slower ramp is done, we terminate the color blending and re-set
         if (blendRamp2.isFinished() == 1 && blending == true)
@@ -269,14 +273,15 @@ uint8_t mtx(uint8_t x, uint8_t y)
 }
 
 rampLong lumRampX, lumRampY, colRampX, colRampY;
-void changeScales(scaleLimits lumScales, scaleLimits colScales, int speed, bool change_all, bool reporting)
+//void changeScales(scaleLimits lumScales, scaleLimits colScales, int speed, bool change_all, bool reporting) 
+void changeScales(scales scales, int speed, bool change_all, bool reporting)
 {
     if (change_all || random(10) % 2 == 0)
     {
-        lumRampX.go(random(lumScales.xMin, lumScales.xMax), speed * random_float(0.5, 1.5), BACK_INOUT);
-        lumRampY.go(random(lumScales.yMin, lumScales.yMax), speed * random_float(0.5, 1.5), BACK_INOUT);
-        colRampX.go(random(colScales.xMin, colScales.xMax), speed * random_float(0.5, 1.5), BACK_INOUT);
-        colRampY.go(random(colScales.yMin, colScales.yMax), speed * random_float(0.5, 1.5), BACK_INOUT);
+        lumRampX.go(random(scales.lumScales.xMin, scales.lumScales.xMax), speed * random_float(0.5, 1.5), BACK_INOUT);
+        lumRampY.go(random(scales.lumScales.yMin, scales.lumScales.yMax), speed * random_float(0.5, 1.5), BACK_INOUT);
+        colRampX.go(random(scales.colScales.xMin, scales.colScales.xMax), speed * random_float(0.5, 1.5), BACK_INOUT);
+        colRampY.go(random(scales.colScales.yMin, scales.colScales.yMax), speed * random_float(0.5, 1.5), BACK_INOUT);
 
         if (reporting)
         {

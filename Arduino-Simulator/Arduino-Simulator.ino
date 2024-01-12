@@ -30,32 +30,35 @@ void setup()
 
   initializePerlin(500, 10000);
 
-  lumScales = {1000, 15000, 1000, 15000};
-  colScales = {1000, 15000, 1000, 15000};
+  scales.lumScales = {1000, 15000, 1000, 15000};
+  scales.colScales = {1000, 15000, 1000, 15000};
 
-  colorType[0] = {hueA, 10, 155, 255, 155, 255};
-  colorType[1] = {hueB, 10, 155, 255, 155, 255};
-  colorType[2] = {hueA, 10, 1, 5, 155, 255};
-  colorType[3] = {hueB, 10, 1, 5, 155, 255};
+  pal.col[0] = {hueA, 10, 155, 255, 155, 255};
+  pal.col[1] = {hueB, 10, 155, 255, 155, 255};
+  pal.col[2] = {hueA, 10, 1, 5, 155, 255};
+  pal.col[3] = {hueB, 10, 1, 5, 155, 255};
 
-  changeScales(lumScales, colScales, 6000, true, false);
-
+  changeScales(scales, 6000, true, false);
   triggerBlend(50, false);
-  blendColors(runCol, newCol, colorType, true, true, false);
+  blendColors(pal, true, true, false);  
 }
 
 void loop()
 {
-  EVERY_N_MILLISECONDS(5000)
+  EVERY_N_MILLISECONDS(2000)
   {
     generateNewHues(hueA, hueB, hueC, hueD, 30, false);
+    
+    pal.col[0] = {hueA, 10, 155, 255, 155, 255};
+    pal.col[1] = {hueB, 10, 155, 255, 155, 255};
+    pal.col[2] = {hueA, 10, 1, 5, 155, 255};
+    pal.col[3] = {hueB, 10, 1, 5, 155, 255};
 
-    triggerBlend(4000, false);
-    changeScales(lumScales, colScales, 4000, false, false);
+    triggerBlend(1900, false);
+    changeScales(scales, 4000, false, false);
   }
 
-  blendColors(runCol, newCol, colorType, true, true, false);
-
-  makeNoise(runCol, hurry, true);
+  blendColors(pal, true, true, false);
+  makeNoise(pal, hurry, true);
   FastLED.show();
 }

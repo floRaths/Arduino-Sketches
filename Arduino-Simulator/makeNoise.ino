@@ -1,6 +1,6 @@
 int maxLumValue = 0; // Assume the first element is the maximum
 
-void makeNoise(CRGB *runningColor, int motionSpeed, bool dataSmoothing)
+void makeNoise(palette pllt, int motionSpeed, bool dataSmoothing)
 {
     uint8_t lumNoise[kMatrixHeight][kMatrixHeight];
     uint8_t lumData[kMatrixHeight][kMatrixHeight];
@@ -36,7 +36,7 @@ void makeNoise(CRGB *runningColor, int motionSpeed, bool dataSmoothing)
         millis() * motionSpeed // timeVal
     );
 
-    CRGBPalette16 runPal = CRGBPalette16(runningColor[0], runningColor[1], runningColor[2], runningColor[3]);
+    CRGBPalette16 runPal = CRGBPalette16(pllt.runCol[0], pllt.runCol[1], pllt.runCol[2], pllt.runCol[3]);
 
     for (int x = 0; x < kMatrixWidth; x++)
     {
