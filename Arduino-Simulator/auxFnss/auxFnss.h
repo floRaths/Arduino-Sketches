@@ -146,6 +146,7 @@ void triggerBlend(int blend_speed, bool reporting = false)
     {
         if (reporting)
         {
+            Serial.println();
             Serial.println(">> triggered color blend");
         }
 
@@ -298,3 +299,34 @@ void initializePerlin (scales &scales, int scaleStartingPoint, int xyRandom) {
 }
 
 uint8_t paletteIndex, switchPalette;
+
+rampInt briRamp;
+uint8_t switchBrightness;
+void changeBrightness(int bri_speed, bool increment = false, uint8_t targetBri = 255, bool reporting = false)
+{
+    if (increment)
+    {
+        switchBrightness = (switchBrightness + 1) % (sizeof(brightnessVals) / sizeof(brightnessVals[0]));
+
+        if (switchBrightness == 0)
+        {
+            targetBri = brightnessVals[0];
+        }
+        else if (switchBrightness == 1)
+        {
+            targetBri = brightnessVals[1];
+        }
+        else if (switchBrightness == 2)
+        {
+            targetBri = brightnessVals[2];
+        }
+    }
+    briRamp.go(targetBri, bri_speed, CIRCULAR_INOUT);
+
+    if (reporting)
+    {
+        Serial.println();
+        Serial.print(">> updating brightness to: ");
+        Serial.println(targetBri);
+    }
+}

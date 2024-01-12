@@ -1,5 +1,5 @@
 
-void updatePalette(palette &palette, const String &paletteType, bool increment = false, bool reporting = false)
+void changePalette(palette &palette, const String &paletteType, bool increment = false, bool reporting = false)
 {
     if (increment)
     {
@@ -23,10 +23,17 @@ void updatePalette(palette &palette, const String &paletteType, bool increment =
         }
         else if (paletteType == "pastel")
         {
-            palette.col[0] = {palette.hueA, 10, 5, 5, 155, 255};
-            palette.col[1] = {palette.hueA, 10, 5, 5, 155, 255};
-            palette.col[2] = {palette.hueA, 10, 5, 5, 155, 255};
-            palette.col[3] = {palette.hueA, 10, 5, 5, 155, 255};
+            palette.col[0] = {palette.hueA, 10, 0, 0, 155, 255};
+            palette.col[1] = {palette.hueA, 10, 0, 0, 155, 255};
+            palette.col[2] = {palette.hueA, 10, 0, 0, 155, 255};
+            palette.col[3] = {palette.hueA, 10, 0, 0, 155, 255};
+        }
+        else if (paletteType == "pastelAccent")
+        {
+            palette.col[0] = {palette.hueA, 10, 5, 5, 0, 255};
+            palette.col[1] = {palette.hueB, 10, 255, 255, 255, 255};
+            palette.col[2] = {palette.hueA, 10, 5, 5, 0, 255};
+            palette.col[3] = {palette.hueA, 10, 5, 5, 0, 255};
         }
         else if (paletteType == "static")
         {
@@ -45,6 +52,7 @@ void updatePalette(palette &palette, const String &paletteType, bool increment =
         
         if (reporting)
         {
+            Serial.println();
             Serial.print(">> updating ");
             Serial.print(paletteType);
             Serial.println(" palette");
