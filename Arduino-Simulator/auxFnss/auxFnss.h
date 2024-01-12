@@ -31,6 +31,8 @@ struct scales
 {
     scaleLimits lumScales;
     scaleLimits colScales;
+    rampLong lumRampX, lumRampY, colRampX, colRampY;
+    uint32_t xyVals[4];
 };
 
 float random_float(float minValue, float maxValue)
@@ -74,7 +76,7 @@ void generateNewHues(palette &palette, const uint8_t minDistance, bool reporting
     if (reporting)
     {
         Serial.println();
-        Serial.print("Hues (A,B,C,D): ");
+        Serial.print(">> randomized hues (A,B,C,D): ");
         Serial.print(palette.hueA);
         Serial.print(", ");
         Serial.print(palette.hueB);
@@ -144,7 +146,7 @@ void triggerBlend(int blend_speed, bool reporting = false)
     {
         if (reporting)
         {
-            Serial.println("triggered");
+            Serial.println(">> triggered color blend");
         }
 
         blending = true;
@@ -222,42 +224,31 @@ void blendColors(palette &palette, bool shuffle = true, bool change_all = true, 
 uint8_t mtx(uint8_t x, uint8_t y)
 {
     // any out of bounds address maps to the first hidden pixel
-    if ((x >= MatrixX) || (y >= MatrixY))
-    {
-        return (NUM_LEDS);
-    }
+    if ((x >= MatrixX) || (y >= MatrixY)) { return (NUM_LEDS); }
 
     uint8_t i;
 
-    if (coil == true)
-    {
-        i = (y * MatrixX) + x;
-    }
+    if (coil == true) { i = (y * MatrixX) + x; }
     else
     {
-        if (ser_col == true)
+        if (ser_col == true) // Even columns, counting from top to bottom
         {
-            // Even columns, counting from top to bottom
             if (x % 2 == 0)
             {
                 i = x * MatrixY + y;
             }
-            // Odd columns, counting from bottom to top
-            else
+            else // Odd columns, counting from bottom to top
             {
                 i = x * MatrixY + (MatrixY - 1 - y);
             }
         }
-        // otherwise we operate on rows (Y values)
-        else
+        else // otherwise we operate on rows (Y values)
         {
-            // Even rows, counting from left to right
-            if (y % 2 == 0)
+            if (y % 2 == 0) // Even rows, counting from left to right
             {
                 i = y * MatrixX + x;
             }
-            // Odd rows, counting from right to left
-            else
+            else // Odd rows, counting from right to left
             {
                 i = y * MatrixY + (MatrixY - 1 - x);
             }
@@ -272,16 +263,16 @@ uint8_t mtx(uint8_t x, uint8_t y)
     return i;
 }
 
-rampLong lumRampX, lumRampY, colRampX, colRampY;
+
 //void changeScales(scaleLimits lumScales, scaleLimits colScales, int speed, bool change_all, bool reporting) 
-void changeScales(scales scales, int speed, bool change_all, bool reporting)
+void changeScales(scales &scales, int speed, bool change_all, bool reporting)
 {
     if (change_all || random(10) % 2 == 0)
     {
-        lumRampX.go(random(scales.lumScales.xMin, scales.lumScales.xMax), speed * random_float(0.5, 1.5), BACK_INOUT);
-        lumRampY.go(random(scales.lumScales.yMin, scales.lumScales.yMax), speed * random_float(0.5, 1.5), BACK_INOUT);
-        colRampX.go(random(scales.colScales.xMin, scales.colScales.xMax), speed * random_float(0.5, 1.5), BACK_INOUT);
-        colRampY.go(random(scales.colScales.yMin, scales.colScales.yMax), speed * random_float(0.5, 1.5), BACK_INOUT);
+        scales.lumRampX.go(random(scales.lumScales.xMin, scales.lumScales.xMax), speed * random_float(0.5, 1.5), BACK_INOUT);
+        scales.lumRampY.go(random(scales.lumScales.yMin, scales.lumScales.yMax), speed * random_float(0.5, 1.5), BACK_INOUT);
+        scales.colRampX.go(random(scales.colScales.xMin, scales.colScales.xMax), speed * random_float(0.5, 1.5), BACK_INOUT);
+        scales.colRampY.go(random(scales.colScales.yMin, scales.colScales.yMax), speed * random_float(0.5, 1.5), BACK_INOUT);
 
         if (reporting)
         {
@@ -290,27 +281,20 @@ void changeScales(scales scales, int speed, bool change_all, bool reporting)
     }
 }
 
-uint32_t xyVals[4];
-void initializePerlin (int scaleStartingPoint, int xyRandom) {
 
-    lumRampX.go(scaleStartingPoint, 0, LINEAR);
-    lumRampY.go(scaleStartingPoint, 0, LINEAR);
-    colRampX.go(scaleStartingPoint, 0, LINEAR);
-    colRampY.go(scaleStartingPoint, 0, LINEAR);
+void initializePerlin (scales &scales, int scaleStartingPoint, int xyRandom) {
 
-    // random xy values for the noise field to ensure different starting points
+    // the scale scaleStartingPoint determines how "dramatic" the startup animation looks
+    scales.lumRampX.go(scaleStartingPoint, 0, LINEAR);
+    scales.lumRampY.go(scaleStartingPoint, 0, LINEAR);
+    scales.colRampX.go(scaleStartingPoint, 0, LINEAR);
+    scales.colRampY.go(scaleStartingPoint, 0, LINEAR);
+
+    // random xy values for the noise field to ensure different startup each time
     for (int i = 0; i < 4; i++)
     {
-        xyVals[i] = random(xyRandom);
+        scales.xyVals[i] = random(xyRandom);
     }
 }
 
-bool executed = false;
 uint8_t paletteIndex, switchPalette;
-
-void incrementPalette(palette &palette)
-{
-    switchPalette = (switchPalette + 1) % (sizeof(paletteNames) / sizeof(paletteNames[0]));
-    palette.paletteType = paletteNames[switchPalette];
-    executed = false;
-}

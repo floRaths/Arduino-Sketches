@@ -1,6 +1,6 @@
 int maxLumValue = 0; // Assume the first element is the maximum
 
-void makeNoise(palette pllt, int motionSpeed, bool dataSmoothing)
+void makeNoise(palette pllt, scales &scales, int motionSpeed, bool dataSmoothing)
 {
     uint8_t lumNoise[MatrixY][MatrixY];
     uint8_t lumData[MatrixY][MatrixY];
@@ -13,27 +13,27 @@ void makeNoise(palette pllt, int motionSpeed, bool dataSmoothing)
     memset(lumNoise, 0, NUM_LEDS);
     fill_raw_2dnoise16into8(
         (uint8_t *)lumNoise,
-        MatrixY,         // width
-        MatrixY,         // height
-        1,                     // octaves
-        xyVals[0],             // x
-        lumRampX.update(),     // scalex
-        xyVals[1],             // y
-        lumRampY.update(),     // scaley
-        millis() * motionSpeed // timeVal
+        MatrixY,                  // width
+        MatrixY,                  // height
+        1,                        // octaves
+        scales.xyVals[0],         // x
+        scales.lumRampX.update(), // scalex
+        scales.xyVals[1],         // y
+        scales.lumRampY.update(), // scaley
+        millis() * motionSpeed    // timeVal
     );
 
     memset(colNoise, 0, NUM_LEDS);
     fill_raw_2dnoise16into8(
         (uint8_t *)colNoise,
-        MatrixY,         // width
-        MatrixY,         // height
-        1,                     // octaves
-        xyVals[2],             // x
-        colRampX.update(),     // scalex
-        xyVals[3],             // y
-        colRampY.update(),     // scalex
-        millis() * motionSpeed // timeVal
+        MatrixY,                  // width
+        MatrixY,                  // height
+        1,                        // octaves
+        scales.xyVals[2],         // x
+        scales.colRampX.update(), // scalex
+        scales.xyVals[3],         // y
+        scales.colRampY.update(), // scalex
+        millis() * motionSpeed    // timeVal
     );
 
     CRGBPalette16 runPal = CRGBPalette16(pllt.runCol[0], pllt.runCol[1], pllt.runCol[2], pllt.runCol[3]);

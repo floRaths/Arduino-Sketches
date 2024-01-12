@@ -1,8 +1,12 @@
 
-void paletteSelection(palette &palette, const String &paletteType, bool reporting = false)
+void updatePalette(palette &palette, const String &paletteType, bool increment = false, bool reporting = false)
 {
-    if (executed == false)
+    if (increment)
     {
+        switchPalette = (switchPalette + 1) % (sizeof(paletteNames) / sizeof(paletteNames[0]));
+        paletteType = paletteNames[switchPalette];
+    }
+
         if (paletteType == "monochrome")
         {
             palette.col[0] = {palette.hueA, 10, 55, 255, 155, 255};
@@ -38,12 +42,11 @@ void paletteSelection(palette &palette, const String &paletteType, bool reportin
             palette.col[2] = {palette.hueC, 10, 1, 255, 1, 255};
             palette.col[3] = {palette.hueD, 10, 1, 255, 1, 255};
         }
-        executed = true;
         
         if (reporting)
         {
+            Serial.print(">> updating ");
             Serial.print(paletteType);
             Serial.println(" palette");
         }
-    }
 }

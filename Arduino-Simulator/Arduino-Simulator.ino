@@ -3,8 +3,8 @@
 
 #define LED_PIN 5
 
-const uint8_t MatrixX = 15;
-const uint8_t MatrixY = 15;
+const uint8_t MatrixX = 16;
+const uint8_t MatrixY = 16;
 #define NUM_LEDS MatrixX * MatrixY
 CRGB leds[NUM_LEDS];
 
@@ -34,45 +34,36 @@ void setup()
   Serial.println("######## Hello Lamp ########");
   Serial.println("############################");
 
-  generateNewHues(pllt, 30, false);
-
-  pllt.hueA = 30;
+  pllt.hueA = 230;
   pllt.hueB = 130;
   pllt.paletteType = "duotone";
 
-  initializePerlin(500, 10000);
+  initializePerlin(scls, 500, 10000);
 
-  scls.lumScales = {1000, 15000, 1000, 15000};
-  scls.colScales = {1000, 15000, 1000, 15000};
+  scls.lumScales = {10000, 15000, 10000, 15000};
+  scls.colScales = {1000, 5000, 1000, 5000};
 
-  paletteSelection(pllt, pllt.paletteType);
-  changeScales(scls, 6000, true, false);
-  triggerBlend(50, false);
-  blendColors(pllt, true, true, false);
+  updatePalette (pllt, pllt.paletteType);
+  changeScales  (scls, 6000, true, false);
+  triggerBlend  (50, false);
+  blendColors   (pllt, true, true, false);
 }
 
 
 // ################## LOOP ####################
 void loop()
 {
-  int changes = 5000;
+  int changes = 4000;
 
   EVERY_N_MILLISECONDS(changes)
   {
-    generateNewHues(pllt, 30, true);
-    // executed = false;
-
-    Serial.println(pllt.hueA);
-    Serial.println(pllt.hueB);
-
-    // incrementPalette(pllt);
-    paletteSelection(pllt, pllt.paletteType, true);
-    triggerBlend(changes*0.99, true);
-    // changeScales(scls, changes, false, false);
+    // generateNewHues (pllt, 30, true);
+    updatePalette   (pllt, pllt.paletteType, false, true);
+    triggerBlend    (changes*0.95, true);
+    changeScales    (scls, changes, true, false);
   }
 
-  
   blendColors(pllt, true, true, false);
-  makeNoise(pllt, hurry, true);
+  makeNoise(pllt, scls, hurry, true);
   FastLED.show();
 }
