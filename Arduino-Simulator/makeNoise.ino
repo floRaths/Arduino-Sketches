@@ -2,19 +2,19 @@ int maxLumValue = 0; // Assume the first element is the maximum
 
 void makeNoise(palette pllt, int motionSpeed, bool dataSmoothing)
 {
-    uint8_t lumNoise[kMatrixHeight][kMatrixHeight];
-    uint8_t lumData[kMatrixHeight][kMatrixHeight];
-    uint8_t scaled_lumData[kMatrixHeight][kMatrixHeight];
+    uint8_t lumNoise[MatrixY][MatrixY];
+    uint8_t lumData[MatrixY][MatrixY];
+    uint8_t scaled_lumData[MatrixY][MatrixY];
 
-    uint8_t colNoise[kMatrixHeight][kMatrixHeight];
-    uint8_t colData[kMatrixHeight][kMatrixHeight];
-    // uint8_t scaled_colData[kMatrixHeight][kMatrixHeight];
+    uint8_t colNoise[MatrixY][MatrixY];
+    uint8_t colData[MatrixY][MatrixY];
+    // uint8_t scaled_colData[MatrixY][MatrixY];
 
     memset(lumNoise, 0, NUM_LEDS);
     fill_raw_2dnoise16into8(
         (uint8_t *)lumNoise,
-        kMatrixHeight,         // width
-        kMatrixHeight,         // height
+        MatrixY,         // width
+        MatrixY,         // height
         1,                     // octaves
         xyVals[0],             // x
         lumRampX.update(),     // scalex
@@ -26,8 +26,8 @@ void makeNoise(palette pllt, int motionSpeed, bool dataSmoothing)
     memset(colNoise, 0, NUM_LEDS);
     fill_raw_2dnoise16into8(
         (uint8_t *)colNoise,
-        kMatrixHeight,         // width
-        kMatrixHeight,         // height
+        MatrixY,         // width
+        MatrixY,         // height
         1,                     // octaves
         xyVals[2],             // x
         colRampX.update(),     // scalex
@@ -38,9 +38,9 @@ void makeNoise(palette pllt, int motionSpeed, bool dataSmoothing)
 
     CRGBPalette16 runPal = CRGBPalette16(pllt.runCol[0], pllt.runCol[1], pllt.runCol[2], pllt.runCol[3]);
 
-    for (int x = 0; x < kMatrixWidth; x++)
+    for (int x = 0; x < MatrixX; x++)
     {
-        for (int y = 0; y < kMatrixHeight; y++)
+        for (int y = 0; y < MatrixY; y++)
         {
             // Find the greatest brightness value in the frame and store it
             if (lumNoise[x][y] > maxLumValue)
@@ -66,7 +66,7 @@ void makeNoise(palette pllt, int motionSpeed, bool dataSmoothing)
             }
 
             leds[mtx(x, y)] = ColorFromPalette(runPal,
-                                               // noiseCols[(y * kMatrixWidth) + x], // when used with 1D colors
+                                               // noiseCols[(y * MatrixX) + x], // when used with 1D colors
                                                colData[x][y] + paletteIndex,
                                                brighten8_lin(lumData[x][y]));
         }

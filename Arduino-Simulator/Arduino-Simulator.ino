@@ -3,21 +3,24 @@
 
 #define LED_PIN 5
 
-const uint8_t kMatrixWidth = 15;
-const uint8_t kMatrixHeight = 15;
+const uint8_t MatrixX = 15;
+const uint8_t MatrixY = 15;
+#define NUM_LEDS MatrixX * MatrixY
+CRGB leds[NUM_LEDS];
+
 boolean coil = true;
 boolean flip = false;
 boolean ser_col = false;
 boolean prototyping = true;
 
-#define NUM_LEDS kMatrixWidth *kMatrixHeight
-CRGB leds[NUM_LEDS];
-
 uint8_t hurry = 16;
+const char *paletteNames[] = {"monochrome", "duotone", "pastel", "whacky"};
 
 #include "auxFnss/auxFnss.h"
-#include "declarations/declarations.h"
+#include "palettes/palettes.h"
 
+palette pllt;
+scales  scls;
 
 // ################## SETUP ####################
 void setup()
@@ -26,39 +29,39 @@ void setup()
   randomSeed(analogRead(0));
 
   FastLED.addLeds < WS2812B, LED_PIN, GRB > (leds, NUM_LEDS);
-  generateNewHues(hueA, hueB, hueC, hueD, 30, false);
+  
+  Serial.println(); Serial.println("##### Hello Lamp #####");
+  
+  generateNewHues(pllt, 30, false);
+
+  pllt.hueA = 20;
 
   initializePerlin(500, 10000);
 
-  scales.lumScales = {1000, 15000, 1000, 15000};
-  scales.colScales = {1000, 15000, 1000, 15000};
+  scls.lumScales = {1000, 15000, 1000, 15000};
+  scls.colScales = {1000, 15000, 1000, 15000};
 
-  pal.col[0] = {hueA, 10, 155, 255, 155, 255};
-  pal.col[1] = {hueB, 10, 155, 255, 155, 255};
-  pal.col[2] = {hueA, 10, 1, 5, 155, 255};
-  pal.col[3] = {hueB, 10, 1, 5, 155, 255};
-
-  changeScales(scales, 6000, true, false);
+  paletteSelection(pllt, "monochrome");
+  changeScales(scls, 6000, true, false);
   triggerBlend(50, false);
-  blendColors(pal, true, true, false);  
+  blendColors(pllt, true, true, false);
 }
 
+
+// ################## LOOP ####################
 void loop()
 {
-  EVERY_N_MILLISECONDS(2000)
+  EVERY_N_MILLISECONDS(6000)
   {
-    generateNewHues(hueA, hueB, hueC, hueD, 30, false);
-    
-    pal.col[0] = {hueA, 10, 155, 255, 155, 255};
-    pal.col[1] = {hueB, 10, 155, 255, 155, 255};
-    pal.col[2] = {hueA, 10, 1, 5, 155, 255};
-    pal.col[3] = {hueB, 10, 1, 5, 155, 255};
-
-    triggerBlend(1900, false);
-    changeScales(scales, 4000, false, false);
+    generateNewHues(pllt, 30, true);
+    Serial.println(pllt.hueA);
+    incrementPalette(pllt);
+    triggerBlend(500, true);
+    changeScales(scls, 4000, false, false);
   }
 
-  blendColors(pal, true, true, false);
-  makeNoise(pal, hurry, true);
+  paletteSelection(pllt, pllt.paletteType, true);
+  blendColors(pllt, true, true, false);
+  makeNoise(pllt, hurry, true);
   FastLED.show();
 }

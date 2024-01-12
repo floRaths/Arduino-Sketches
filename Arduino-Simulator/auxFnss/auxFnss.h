@@ -11,10 +11,12 @@ struct colorType
 
 struct palette
 {
+    uint8_t hueA, hueB, hueC, hueD;
     colorType col[4];
     CRGB newCol[4];
     CRGB runCol[4];
     CRGB oldCol[4];
+    char *paletteType;
 };
 
 struct scaleLimits
@@ -45,43 +47,41 @@ bool testDistance(uint8_t first_hue, uint8_t second_hue, uint8_t minDistance)
     return (test1 <= minDistance) || (test2 <= minDistance);
 }
 
-uint8_t hueA, hueB, hueC, hueD;
-// Function to generate three random values with a defined minimum separation
-void generateNewHues(uint8_t &hue_A, uint8_t &hue_B, uint8_t &hue_C, uint8_t &hue_D, const uint8_t minDistance, bool reporting = false)
+void generateNewHues(palette &palette, const uint8_t minDistance, bool reporting = false)
 {
-    uint8_t hue_old = hue_A;
+    uint8_t hue_old = palette.hueA;
 
     do // Generate the first color
     {
-        hue_A = random(256);
-    } while (testDistance(hue_A, hue_old, minDistance));
+        palette.hueA = random(256);
+    } while (testDistance(palette.hueA, hue_old, minDistance));
 
     do // Generate the second color
     {
-        hue_B = random(256);
-    } while (testDistance(hue_B, hue_A, minDistance));
+        palette.hueB = random(256);
+    } while (testDistance(palette.hueB, palette.hueA, minDistance));
 
     do // Generate the third color
     {
-        hue_C = random(256);
-    } while (testDistance(hue_C, hue_A, minDistance) || testDistance(hue_C, hue_B, minDistance));
+        palette.hueC = random(256);
+    } while (testDistance(palette.hueC, palette.hueA, minDistance) || testDistance(palette.hueC, palette.hueB, minDistance));
 
     do // Generate the fourth color
     {
-        hue_D = random(256);
-    } while (testDistance(hue_D, hue_A, minDistance) || testDistance(hue_D, hue_B, minDistance) || testDistance(hue_D, hue_C, minDistance));
+        palette.hueD = random(256);
+    } while (testDistance(palette.hueD, palette.hueA, minDistance) || testDistance(palette.hueD, palette.hueB, minDistance) || testDistance(palette.hueD, palette.hueC, minDistance));
 
     if (reporting)
     {
         Serial.println();
         Serial.print("Hues (A,B,C,D): ");
-        Serial.print(hue_A);
+        Serial.print(palette.hueA);
         Serial.print(", ");
-        Serial.print(hue_B);
+        Serial.print(palette.hueB);
         Serial.print(", ");
-        Serial.print(hue_C);
+        Serial.print(palette.hueC);
         Serial.print(", ");
-        Serial.println(hue_D);
+        Serial.println(palette.hueD);
     }
 }
 
@@ -116,19 +116,19 @@ CHSV colorFromRange(uint8_t baseHue, uint8_t hue_fluct, uint8_t sat_min, uint8_t
 
 // Assembles a new 4-color palette from a set of instructions. Can be set to only assemble random subcolors
 //void assemblePalette(CRGB *newColors, colorType colorInstruction[4], bool change_all, bool reporting = false) 
-void assemblePalette(palette &pllt, bool change_all, bool reporting = false)
+void assemblePalette(palette &palette, bool change_all, bool reporting = false)
 {
     for (int i = 0; i < 4; ++i)
     {
         if (change_all || random(10) % 2 == 0)
         {
             if (reporting) { Serial.print("Pal" + String(i) + " = ");}
-            pllt.newCol[i] = colorFromRange(pllt.col[i].hue,
-                                            pllt.col[i].hueFluct,
-                                            pllt.col[i].satMin,
-                                            pllt.col[i].satMax,
-                                            pllt.col[i].briMin,
-                                            pllt.col[i].briMax,
+            palette.newCol[i] = colorFromRange(palette.col[i].hue,
+                                            palette.col[i].hueFluct,
+                                            palette.col[i].satMin,
+                                            palette.col[i].satMax,
+                                            palette.col[i].briMin,
+                                            palette.col[i].briMax,
                                             reporting);
         }
     }
@@ -184,31 +184,31 @@ void shuffleColors(CRGB *inputColor) {
 }
 
 // Function to blend colors upon request
-void blendColors(palette &pllt, bool shuffle = true, bool change_all = true, bool reporting = false)
+void blendColors(palette &palette, bool shuffle = true, bool change_all = true, bool reporting = false)
 {
     // some operations that only happen during first call of this function
     if (blending == true && stored_colors == false)
     {
-        assemblePalette(pllt, change_all, reporting);
+        assemblePalette(palette, change_all, reporting);
         // if requested, the colors will be shuffled
         if (shuffle)
         {
-            shuffleColors(pllt.newCol);
+            shuffleColors(palette.newCol);
         }
         // the previous running colors are stored in an array thats used for blending
         for (int i = 0; i < 4; i++)
         {
-            pllt.oldCol[i] = pllt.runCol[i];
+            palette.oldCol[i] = palette.runCol[i];
         }
         stored_colors = true; // terminates the process
     }
     
     if (blendRamp2.isRunning() == 1)
     {
-        pllt.runCol[0] = blend(pllt.oldCol[0], pllt.newCol[0], blendRamp1.update());
-        pllt.runCol[1] = blend(pllt.oldCol[1], pllt.newCol[1], blendRamp2.update());
-        pllt.runCol[2] = blend(pllt.oldCol[2], pllt.newCol[2], blendRamp1.update());
-        pllt.runCol[3] = blend(pllt.oldCol[3], pllt.newCol[3], blendRamp2.update());
+        palette.runCol[0] = blend(palette.oldCol[0], palette.newCol[0], blendRamp1.update());
+        palette.runCol[1] = blend(palette.oldCol[1], palette.newCol[1], blendRamp2.update());
+        palette.runCol[2] = blend(palette.oldCol[2], palette.newCol[2], blendRamp1.update());
+        palette.runCol[3] = blend(palette.oldCol[3], palette.newCol[3], blendRamp2.update());
     }
         // after the slower ramp is done, we terminate the color blending and re-set
         if (blendRamp2.isFinished() == 1 && blending == true)
@@ -222,7 +222,7 @@ void blendColors(palette &pllt, bool shuffle = true, bool change_all = true, boo
 uint8_t mtx(uint8_t x, uint8_t y)
 {
     // any out of bounds address maps to the first hidden pixel
-    if ((x >= kMatrixWidth) || (y >= kMatrixHeight))
+    if ((x >= MatrixX) || (y >= MatrixY))
     {
         return (NUM_LEDS);
     }
@@ -231,7 +231,7 @@ uint8_t mtx(uint8_t x, uint8_t y)
 
     if (coil == true)
     {
-        i = (y * kMatrixWidth) + x;
+        i = (y * MatrixX) + x;
     }
     else
     {
@@ -240,12 +240,12 @@ uint8_t mtx(uint8_t x, uint8_t y)
             // Even columns, counting from top to bottom
             if (x % 2 == 0)
             {
-                i = x * kMatrixHeight + y;
+                i = x * MatrixY + y;
             }
             // Odd columns, counting from bottom to top
             else
             {
-                i = x * kMatrixHeight + (kMatrixHeight - 1 - y);
+                i = x * MatrixY + (MatrixY - 1 - y);
             }
         }
         // otherwise we operate on rows (Y values)
@@ -254,12 +254,12 @@ uint8_t mtx(uint8_t x, uint8_t y)
             // Even rows, counting from left to right
             if (y % 2 == 0)
             {
-                i = y * kMatrixWidth + x;
+                i = y * MatrixX + x;
             }
             // Odd rows, counting from right to left
             else
             {
-                i = y * kMatrixWidth + (kMatrixWidth - 1 - x);
+                i = y * MatrixY + (MatrixY - 1 - x);
             }
         }
     }
@@ -303,4 +303,14 @@ void initializePerlin (int scaleStartingPoint, int xyRandom) {
     {
         xyVals[i] = random(xyRandom);
     }
+}
+
+bool executed = false;
+uint8_t paletteIndex, switchPalette;
+
+void incrementPalette(palette &palette)
+{
+    switchPalette = (switchPalette + 1) % (sizeof(paletteNames) / sizeof(paletteNames[0]));
+    palette.paletteType = paletteNames[switchPalette];
+    executed = false;
 }
