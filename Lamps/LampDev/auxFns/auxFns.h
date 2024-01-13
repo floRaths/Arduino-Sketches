@@ -271,7 +271,6 @@ void newHues(uint8_t min_diff)
 
 void triggerRoll(int roll_speed)
 {
-
     // randomize the order of the colors
     for (int i = 0; i < 4; ++i)
     {

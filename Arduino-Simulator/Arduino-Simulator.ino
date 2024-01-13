@@ -1,135 +1,90 @@
 #include <FastLED.h>
+#include <Ramp.h>
+#include <OneButton.h>
 
-boolean coil = true;
-boolean flip = false;
-boolean ser_col = true;
+#define LED_PIN 5
+#define BTN_PIN 7
 
-#define LED_PIN 6
-#define kMatrixWidth 15
-#define kMatrixHeight 15
-#define NUM_PARTICLES 35
-#define NUM_LEDS kMatrixWidth *kMatrixHeight
+OneButton btn = OneButton(BTN_PIN, true, true);
 
-CRGB leds[kMatrixWidth * kMatrixHeight];
+const uint8_t MatrixX = 16;
+const uint8_t MatrixY = 16;
+#define NUM_LEDS MatrixX * MatrixY
+CRGB leds[NUM_LEDS];
 
-//uint8_t flowField[kMatrixWidth][kMatrixHeight];
+const bool coil = false;
+const bool flip = false;
+const bool serpentine = true;
+const bool prototyping = true;
 
-float xOff = 0.0;
-float yOff = 0.0;
-float noiseScale = 0.1;
+uint8_t hurry = 6;
+const char *paletteNames[] = {"monochrome", "duotone", "pastel", "pastelAccent", "static"};
+const int  *brightnessVals[] = {255, 128, 0};
 
-struct Vector
-{
-  float x;
-  float y;
+#include "auxFnss/auxFnss.h"
+#include "palettes/palettes.h"
 
-  // Default constructor
-  Vector() : x(0.0), y(0.0) {}
+palette pllt;
+scales  scls;
 
-  // Parameterized constructor
-  Vector(float x_, float y_) : x(x_), y(y_) {}
-
-  float magnitude()
-  {
-    return sqrt(x * x + y * y);
-  }
-
-  void normalize()
-  {
-    float mag = magnitude();
-    if (mag != 0)
-    {
-      x /= mag;
-      y /= mag;
-    }
-  }
-};
-
-Vector flowField[kMatrixWidth][kMatrixHeight];
-
-void generateFlowField()
-{
-  float xOff = 0.0;
-  float yOff = 0.0;
-  float noiseScale = 0.1;
-
-  for (int x = 0; x < kMatrixWidth; x++)
-  {
-    for (int y = 0; y < kMatrixHeight; y++)
-    {
-      float angle = inoise8(xOff, yOff) * TWO_PI * 2.0;
-      flowField[x][y] = {cos(angle), sin(angle)}; // Initialize using curly braces
-      flowField[x][y].normalize();
-      yOff += noiseScale;
-    }
-    xOff += noiseScale;
-  }
-}
-
-class Particle
-{
-public:
-  float x, y;
-  Particle()
-  {
-    x = random(kMatrixWidth);
-    y = random(kMatrixHeight);
-  }
-
-  void move()
-  {
-    int nearestX = int(x);
-    int nearestY = int(y);
-
-    // Move towards the closest vector in the flow field
-    x += flowField[nearestX][nearestY].x;
-    y += flowField[nearestX][nearestY].y;
-
-    // Wrap around the edges
-    x = fmod(x, kMatrixWidth);
-    y = fmod(y, kMatrixHeight);
-  }
-
-  void display()
-  {
-    leds[mtx(x, y)] = CRGB::White;
-  }
-};
-
-Particle particles[NUM_PARTICLES];
-
-void updateFlowField()
-{
-  generateFlowField();
-}
-
-void updateParticles()
-{
-  for (int i = 0; i < NUM_PARTICLES; i++)
-  {
-    particles[i].move();
-    particles[i].display();
-  }
+void buttonClick() {
+  changeBrightness(1000, true, 255, true);
 }
 
 // ################## SETUP ####################
 void setup()
 {
+  delay(100); // startup safety delay  
   Serial.begin(115200);
   randomSeed(analogRead(0));
 
-  FastLED.addLeds<WS2812B, 5, GRB>(leds, NUM_LEDS);
-  FastLED.setBrightness(255);
+  FastLED.addLeds < WS2812B, LED_PIN, GRB > (leds, NUM_LEDS);
+  FastLED.setCorrection(TypicalLEDStrip);
+  FastLED.setTemperature(Tungsten40W);
+  FastLED.setBrightness(0);
+
+  btn.attachClick(changeBrightness);
+
+  Serial.println();
+  Serial.println("######## Hello Lamp ########");
+  Serial.println("############################");
+
+  pllt.hueA = 250;
+  pllt.hueB = 60;
+  pllt.paletteType = "pastel";
+
+  initializePerlin(scls, 500, 10000);
+
+  scls.lumScales = {1000, 15000, 1000, 15000};
+  scls.colScales = {1000, 5000, 1000, 5000};
+
+  changePalette (pllt, pllt.paletteType);
+  changeScales  (scls, 6000, true, false);
+  changeBrightness(2500, false, 255, true);
+  
+  triggerBlend  (50, false);
+  blendColors   (pllt, true, true, false);
 }
 
+
+// ################## LOOP ####################
 void loop()
 {
-  fill_solid(leds, NUM_LEDS, CRGB::Red);
-  //FastLED.clear();
+  int changes = 5000;
 
-  // updateFlowField();
-  // updateParticles();
+  EVERY_N_MILLISECONDS(changes)
+  {
+    //generateNewHues (pllt, 30, true);
+    changePalette   (pllt, pllt.paletteType, true, true);
+    triggerBlend    (changes*0.95, true);
+    changeScales    (scls, changes, false, false);
+    //changeBrightness(250, true, 255, true);
 
+  }
+
+  blendColors(pllt, true, true, true);
+  makeNoise(pllt, scls, hurry, true);
+  FastLED.setBrightness(briRamp.update());
   FastLED.show();
-  delay(30);
+  btn.tick();
 }

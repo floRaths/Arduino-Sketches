@@ -6,17 +6,7 @@
                 [
                     { "type": "wokwi-arduino-mega", "id": "nano", "top": 0, "left": 0, "attrs": {} },
                     { "type": "wokwi-lcd1602",      "id": "lcd",  "top": 0,     "left": 200,      "attrs": {"pins": "i2c"}},
-                    { "type": "wokwi-neopixel-canvas", "id": "neopixels1",
-      "top": 200,
-      "left": 0,
-      "attrs": {
-        "rows": "16",
-        "cols": "16",
-        "_temp_gamma": "1",
-        "pixelate": "0",
-        "matrixLayout": "serpentine"
-      }
-    },
+                    { "type": "wokwi-neopixel-canvas", "id": "neopixels1", "top": 200, "left": 0, "attrs": { "rows": "16", "cols": "16", "pixelate": "0" }},
                     { "type": "wokwi-pushbutton", "id": "btn1", "top": 0, "left": -100, "attrs": { "color": "green", "key": "Control" }}
                 ],
                     "connections": [
