@@ -16,17 +16,17 @@ void changePalette(palette &palette, const String &paletteType, bool increment =
         }
         else if (paletteType == "duotone")
         {
-            palette.col[0] = {palette.hueA, 10, 55, 255, 155, 255};
+            palette.col[0] = {palette.hueA, 10, 55,  255, 155, 255};
             palette.col[1] = {palette.hueA, 10, 155, 255, 155, 255};
             palette.col[2] = {palette.hueB, 10, 155, 255, 155, 255};
-            palette.col[3] = {palette.hueB, 10, 55, 255, 155, 255};
+            palette.col[3] = {palette.hueB, 10, 55,  255, 155, 255};
         }
         else if (paletteType == "pastel")
         {
-            palette.col[0] = {palette.hueA, 10, 0, 0, 155, 255};
-            palette.col[1] = {palette.hueA, 10, 0, 0, 155, 255};
-            palette.col[2] = {palette.hueA, 10, 0, 0, 155, 255};
-            palette.col[3] = {palette.hueA, 10, 0, 0, 155, 255};
+            palette.col[0] = {palette.hueA, 0, 0, 0, 255, 255};
+            palette.col[1] = {palette.hueA, 0, 0, 0, 255, 255};
+            palette.col[2] = {palette.hueA, 0, 0, 0, 255, 255};
+            palette.col[3] = {palette.hueA, 0, 0, 0, 255, 255};
         }
         else if (paletteType == "pastelAccent")
         {

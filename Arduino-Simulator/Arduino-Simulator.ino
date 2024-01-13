@@ -1,19 +1,23 @@
 #include <FastLED.h>
 #include <Ramp.h>
+#include <OneButton.h>
 
 #define LED_PIN 5
+#define BTN_PIN 7
+
+OneButton btn = OneButton(BTN_PIN, true, true);
 
 const uint8_t MatrixX = 16;
 const uint8_t MatrixY = 16;
 #define NUM_LEDS MatrixX * MatrixY
 CRGB leds[NUM_LEDS];
 
-const bool coil = true;
+const bool coil = false;
 const bool flip = false;
-const bool ser_col = false;
+const bool serpentine = true;
 const bool prototyping = true;
 
-uint8_t hurry = 20;
+uint8_t hurry = 6;
 const char *paletteNames[] = {"monochrome", "duotone", "pastel", "pastelAccent", "static"};
 const int  *brightnessVals[] = {255, 128, 0};
 
@@ -22,6 +26,10 @@ const int  *brightnessVals[] = {255, 128, 0};
 
 palette pllt;
 scales  scls;
+
+void buttonClick() {
+  changeBrightness(1000, true, 255, true);
+}
 
 // ################## SETUP ####################
 void setup()
@@ -35,17 +43,19 @@ void setup()
   FastLED.setTemperature(Tungsten40W);
   FastLED.setBrightness(0);
 
+  btn.attachClick(changeBrightness);
+
   Serial.println();
   Serial.println("######## Hello Lamp ########");
   Serial.println("############################");
 
-  pllt.hueA = 230;
-  pllt.hueB = 130;
-  pllt.paletteType = "duotone";
+  pllt.hueA = 250;
+  pllt.hueB = 60;
+  pllt.paletteType = "pastel";
 
   initializePerlin(scls, 500, 10000);
 
-  scls.lumScales = {10000, 15000, 10000, 15000};
+  scls.lumScales = {1000, 15000, 1000, 15000};
   scls.colScales = {1000, 5000, 1000, 5000};
 
   changePalette (pllt, pllt.paletteType);
@@ -60,19 +70,21 @@ void setup()
 // ################## LOOP ####################
 void loop()
 {
-  int changes = 10000;
+  int changes = 5000;
 
   EVERY_N_MILLISECONDS(changes)
   {
     //generateNewHues (pllt, 30, true);
-    changePalette   (pllt, pllt.paletteType, false, true);
+    changePalette   (pllt, pllt.paletteType, true, true);
     triggerBlend    (changes*0.95, true);
-    changeScales    (scls, changes, true, false);
+    changeScales    (scls, changes, false, false);
     //changeBrightness(250, true, 255, true);
+
   }
 
-  blendColors(pllt, true, true, false);
+  blendColors(pllt, true, true, true);
   makeNoise(pllt, scls, hurry, true);
   FastLED.setBrightness(briRamp.update());
   FastLED.show();
+  btn.tick();
 }

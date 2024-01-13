@@ -124,14 +124,14 @@ void assemblePalette(palette &palette, bool change_all, bool reporting = false)
     {
         if (change_all || random(10) % 2 == 0)
         {
-            if (reporting) { Serial.print("Pal" + String(i) + " = ");}
-            palette.newCol[i] = colorFromRange(palette.col[i].hue,
-                                            palette.col[i].hueFluct,
-                                            palette.col[i].satMin,
-                                            palette.col[i].satMax,
-                                            palette.col[i].briMin,
-                                            palette.col[i].briMax,
-                                            reporting);
+            if (reporting) { Serial.print("newCol[" + String(i) + "] = ");}
+            palette.newCol[i] = colorFromRange( palette.col[i].hue,
+                                                palette.col[i].hueFluct,
+                                                palette.col[i].satMin,
+                                                palette.col[i].satMax,
+                                                palette.col[i].briMin,
+                                                palette.col[i].briMax,
+                                                reporting);
         }
     }
 }
@@ -232,7 +232,7 @@ uint8_t mtx(uint8_t x, uint8_t y)
     if (coil == true) { i = (y * MatrixX) + x; }
     else
     {
-        if (ser_col == true) // Even columns, counting from top to bottom
+        if (serpentine == true) // Even columns, counting from top to bottom
         {
             if (x % 2 == 0)
             {
@@ -264,7 +264,6 @@ uint8_t mtx(uint8_t x, uint8_t y)
     return i;
 }
 
-
 //void changeScales(scaleLimits lumScales, scaleLimits colScales, int speed, bool change_all, bool reporting) 
 void changeScales(scales &scales, int speed, bool change_all, bool reporting)
 {
@@ -281,7 +280,6 @@ void changeScales(scales &scales, int speed, bool change_all, bool reporting)
         }
     }
 }
-
 
 void initializePerlin (scales &scales, int scaleStartingPoint, int xyRandom) {
 
