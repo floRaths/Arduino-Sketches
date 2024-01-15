@@ -2,12 +2,14 @@ int maxLumValue = 0; // Assume the first element is the maximum
 
 void makeNoise(palette pllt, scales &scales, int motionSpeed, bool dataSmoothing)
 {
-    uint8_t lumNoise[MatrixY][MatrixY];
-    uint8_t lumData[MatrixY][MatrixY];
-    uint8_t scaled_lumData[MatrixY][MatrixY];
+    //Serial.println(maxLumValue);
 
-    uint8_t colNoise[MatrixY][MatrixY];
-    uint8_t colData[MatrixY][MatrixY];
+    uint8_t lumNoise[MatrixX][MatrixY]; 
+    uint8_t lumData[MatrixX][MatrixY];
+    uint8_t scaled_lumData[MatrixX][MatrixY];
+
+    uint8_t colNoise[MatrixX][MatrixY];
+    uint8_t colData[MatrixX][MatrixY];
     // uint8_t scaled_colData[MatrixY][MatrixY];
 
     memset(lumNoise, 0, NUM_LEDS);
@@ -41,12 +43,16 @@ void makeNoise(palette pllt, scales &scales, int motionSpeed, bool dataSmoothing
     for (int x = 0; x < MatrixX; x++)
     {
         for (int y = 0; y < MatrixY; y++)
-        {
-            // Find the greatest brightness value in the frame and store it
-            if (lumNoise[x][y] > maxLumValue)
-            { maxLumValue = lumNoise[x][y]; }
+        {            
+            // find highest value in current frame and set as limit
+            //if (scaled_lumData[x][y] >= maxLumValue)
+            if (lumNoise[x][y] >= maxLumValue)
+            {
+                    //maxLumValue = (scaled_lumData[x][y]);
+                    maxLumValue = (lumNoise[x][y]);
+            }
 
-            // upscale the data realtive to the max value
+            // upscale noise values based on current limit
             scaled_lumData[x][y] = qadd8(lumNoise[x][y], scale8(lumNoise[x][y], maxLumValue));
 
             if (dataSmoothing)
@@ -69,6 +75,14 @@ void makeNoise(palette pllt, scales &scales, int motionSpeed, bool dataSmoothing
                                                // noiseCols[(y * MatrixX) + x], // when used with 1D colors
                                                colData[x][y] + paletteIndex,
                                                brighten8_lin(lumData[x][y]));
+
+            // if (lumData[x][y] == 254) {
+            //     leds[mtx(x, y)] = CRGB::Red;
+            // }
+            // else if (lumData[x][y] == 0)
+            // {
+            //     leds[mtx(x, y)] = CRGB::Blue;
+            // }
         }
     }
 }

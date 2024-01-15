@@ -35,6 +35,13 @@ struct scales
     uint32_t xyVals[4];
 };
 
+struct stripRange
+{
+    ramp lowerRamp, upperRamp;
+    int lower_limit, upper_limit;
+    int lower_speed, upper_speed;
+};
+
 float random_float(float minValue, float maxValue)
 {
     float randomNumber = minValue + (random(0, 1001) / 1000.0) * (maxValue - minValue);
@@ -326,5 +333,95 @@ void changeBrightness(int bri_speed, bool increment = false, uint8_t targetBri =
         Serial.println();
         Serial.print(">> updating brightness to: ");
         Serial.println(targetBri);
+    }
+}
+
+uint8_t switchStripRange;
+void changeStripRange(stripRange &stripRange, bool increment = false, bool reporting = false, int upper_target = LAST_LED, int lower_target = 0, int upper_speed = 1000, int lower_speed = 1000)
+{
+    if (increment)
+    {
+        //switchStripRange = (switchStripRange + 1) % (sizeof(stripRangeVals) / sizeof(stripRangeVals[0]));
+        switchStripRange = (switchStripRange + 1) % 3;
+
+        if (switchStripRange == 0)
+        {
+            stripRange.upper_limit = LAST_LED;
+            stripRange.lower_limit = 0;
+            
+            stripRange.upper_speed = 1000;
+            stripRange.lower_speed = 1000;
+        }
+        else if (switchStripRange == 1)
+        {
+            stripRange.upper_limit = LAST_LED * 0.75;
+            stripRange.lower_limit = 0;
+            
+            stripRange.upper_speed = 1000;
+            stripRange.lower_speed = 1000;
+        }
+        else if (switchStripRange == 2)
+        {
+            stripRange.upper_limit = LAST_LED * 0.25;
+            stripRange.lower_limit = 0;
+            
+            stripRange.upper_speed = 1000;
+            stripRange.lower_speed = 1000;
+        }
+    }
+    else
+    {
+        stripRange.upper_limit = upper_target;
+        stripRange.upper_speed = upper_speed;
+
+        stripRange.lower_limit = lower_target;
+        stripRange.lower_speed = lower_speed;
+    }
+
+    stripRange.upperRamp.go(stripRange.upper_limit, stripRange.upper_speed, CIRCULAR_INOUT);
+    stripRange.lowerRamp.go(stripRange.lower_limit, stripRange.lower_speed, CIRCULAR_INOUT);
+
+    if (reporting)
+    {
+        Serial.println();
+        Serial.print(">> updating strip ranges to: ");
+        Serial.print(stripRange.lower_limit);
+        Serial.print(" & ");
+        Serial.println(stripRange.upper_limit);
+    }
+}
+
+void updateRange(uint8_t lower, uint8_t upper, uint8_t steps)
+{
+    for (int i = upper; i < NUM_LEDS; i++)
+    {
+        int value = (255 / steps) * (i - upper);
+        if (value >= 255)
+            value = 255;
+
+        if (prototyping)
+        {
+            leds[NUM_LEDS - 1 - i].subtractFromRGB(value);
+        }
+        else
+        {
+            leds[i].subtractFromRGB(value);
+        }
+    }
+
+    for (int k = lower; k > -1; k--)
+    {
+        int value = (255 / steps) * (lower - k);
+        if (value >= 255)
+            value = 255;
+
+        if (prototyping)
+        {
+            leds[NUM_LEDS - 1 - k].subtractFromRGB(value);
+        }
+        else
+        {
+            leds[k].subtractFromRGB(value);
+        }
     }
 }
