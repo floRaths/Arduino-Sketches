@@ -2,15 +2,13 @@ int maxLumValue = 0; // Assume the first element is the maximum
 
 void makeNoise(palette pllt, scales &scales, int motionSpeed, bool dataSmoothing)
 {
-    //Serial.println(maxLumValue);
-
     uint8_t lumNoise[MatrixX][MatrixY]; 
     uint8_t lumData[MatrixX][MatrixY];
     uint8_t scaled_lumData[MatrixX][MatrixY];
 
     uint8_t colNoise[MatrixX][MatrixY];
     uint8_t colData[MatrixX][MatrixY];
-    // uint8_t scaled_colData[MatrixY][MatrixY];
+
 
     memset(lumNoise, 0, NUM_LEDS);
     fill_raw_2dnoise16into8(
@@ -45,10 +43,8 @@ void makeNoise(palette pllt, scales &scales, int motionSpeed, bool dataSmoothing
         for (int y = 0; y < MatrixY; y++)
         {            
             // find highest value in current frame and set as limit
-            //if (scaled_lumData[x][y] >= maxLumValue)
             if (lumNoise[x][y] >= maxLumValue)
             {
-                    //maxLumValue = (scaled_lumData[x][y]);
                     maxLumValue = (lumNoise[x][y]);
             }
 
@@ -75,14 +71,6 @@ void makeNoise(palette pllt, scales &scales, int motionSpeed, bool dataSmoothing
                                                // noiseCols[(y * MatrixX) + x], // when used with 1D colors
                                                colData[x][y] + paletteIndex,
                                                brighten8_lin(lumData[x][y]));
-
-            // if (lumData[x][y] == 254) {
-            //     leds[mtx(x, y)] = CRGB::Red;
-            // }
-            // else if (lumData[x][y] == 0)
-            // {
-            //     leds[mtx(x, y)] = CRGB::Blue;
-            // }
         }
     }
 }

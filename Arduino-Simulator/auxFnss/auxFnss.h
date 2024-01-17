@@ -1,3 +1,8 @@
+rampInt briRamp;
+ramp blendRamp1, blendRamp2;
+bool blending, stored_colors;
+uint8_t paletteIndex, switchPalette, switchBrightness, switchStripRange;
+
 // Struct to hold info on color ranges in order to request certain palette types
 struct colorType
 {
@@ -42,56 +47,65 @@ struct stripRange
     int lower_speed, upper_speed;
 };
 
+
+// ########## MATRIX ##########
+
+uint8_t mtx(uint8_t x, uint8_t y)
+{
+    // any out of bounds address maps to the first hidden pixel
+    if ((x >= MatrixX) || (y >= MatrixY))
+    {
+        return (NUM_LEDS);
+    }
+
+    uint8_t i;
+
+    if (coil == true)
+    {
+        i = (y * MatrixX) + x;
+    }
+    else
+    {
+        if (serpentine == true) // Even columns, counting from top to bottom
+        {
+            if (x % 2 == 0)
+            {
+                i = x * MatrixY + y;
+            }
+            else // Odd columns, counting from bottom to top
+            {
+                i = x * MatrixY + (MatrixY - 1 - y);
+            }
+        }
+        else // otherwise we operate on rows (Y values)
+        {
+            if (y % 2 == 0) // Even rows, counting from left to right
+            {
+                i = y * MatrixX + x;
+            }
+            else // Odd rows, counting from right to left
+            {
+                i = y * MatrixY + (MatrixY - 1 - x);
+            }
+        }
+    }
+
+    // Optionally invert the index
+    if (flip == true)
+    {
+        i = NUM_LEDS - 1 - i;
+    }
+    return i;
+}
+
+
+// ########## COLOR BLENDING ##########
+
+// Helper function to generate a float within a defined range
 float random_float(float minValue, float maxValue)
 {
     float randomNumber = minValue + (random(0, 1001) / 1000.0) * (maxValue - minValue);
     return randomNumber;
-}
-
-// Helper function to test if two hues are separate by a desired distance
-bool testDistance(uint8_t first_hue, uint8_t second_hue, uint8_t minDistance)
-{
-    uint8_t test1 = first_hue - second_hue;
-    uint8_t test2 = second_hue - first_hue;
-    return (test1 <= minDistance) || (test2 <= minDistance);
-}
-
-void generateNewHues(palette &palette, const uint8_t minDistance, bool reporting = false)
-{
-    uint8_t hue_old = palette.hueA;
-
-    do // Generate the first color
-    {
-        palette.hueA = random(256);
-    } while (testDistance(palette.hueA, hue_old, minDistance));
-
-    do // Generate the second color
-    {
-        palette.hueB = random(256);
-    } while (testDistance(palette.hueB, palette.hueA, minDistance));
-
-    do // Generate the third color
-    {
-        palette.hueC = random(256);
-    } while (testDistance(palette.hueC, palette.hueA, minDistance) || testDistance(palette.hueC, palette.hueB, minDistance));
-
-    do // Generate the fourth color
-    {
-        palette.hueD = random(256);
-    } while (testDistance(palette.hueD, palette.hueA, minDistance) || testDistance(palette.hueD, palette.hueB, minDistance) || testDistance(palette.hueD, palette.hueC, minDistance));
-
-    if (reporting)
-    {
-        Serial.println();
-        Serial.print(">> randomized hues (A,B,C,D): ");
-        Serial.print(palette.hueA);
-        Serial.print(", ");
-        Serial.print(palette.hueB);
-        Serial.print(", ");
-        Serial.print(palette.hueC);
-        Serial.print(", ");
-        Serial.println(palette.hueD);
-    }
 }
 
 // Function to build a CHSV color from a predefined set of input ranges for hue, sat, bri
@@ -124,7 +138,6 @@ CHSV colorFromRange(uint8_t baseHue, uint8_t hue_fluct, uint8_t sat_min, uint8_t
 }
 
 // Assembles a new 4-color palette from a set of instructions. Can be set to only assemble random subcolors
-//void assemblePalette(CRGB *newColors, colorType colorInstruction[4], bool change_all, bool reporting = false) 
 void assemblePalette(palette &palette, bool change_all, bool reporting = false)
 {
     for (int i = 0; i < 4; ++i)
@@ -142,9 +155,6 @@ void assemblePalette(palette &palette, bool change_all, bool reporting = false)
         }
     }
 }
-
-ramp blendRamp1, blendRamp2;
-bool blending, stored_colors;
 
 // triggers a color blend event
 void triggerBlend(int blend_speed, bool reporting = false)
@@ -229,46 +239,24 @@ void blendColors(palette &palette, bool shuffle = true, bool change_all = true, 
         }
 }
 
-uint8_t mtx(uint8_t x, uint8_t y)
+
+// ########## SCALE FUNCTIONS ##########
+
+// startup function to set the initial values for the noise scaling
+void initializePerlin(scales &scales, int scaleStartingPoint, int xyRandom)
 {
-    // any out of bounds address maps to the first hidden pixel
-    if ((x >= MatrixX) || (y >= MatrixY)) { return (NUM_LEDS); }
 
-    uint8_t i;
+    // the scale scaleStartingPoint determines how "dramatic" the startup animation looks
+    scales.lumRampX.go(scaleStartingPoint, 0, LINEAR);
+    scales.lumRampY.go(scaleStartingPoint, 0, LINEAR);
+    scales.colRampX.go(scaleStartingPoint, 0, LINEAR);
+    scales.colRampY.go(scaleStartingPoint, 0, LINEAR);
 
-    if (coil == true) { i = (y * MatrixX) + x; }
-    else
+    // random xy values for the noise field to ensure different startup each time
+    for (int i = 0; i < 4; i++)
     {
-        if (serpentine == true) // Even columns, counting from top to bottom
-        {
-            if (x % 2 == 0)
-            {
-                i = x * MatrixY + y;
-            }
-            else // Odd columns, counting from bottom to top
-            {
-                i = x * MatrixY + (MatrixY - 1 - y);
-            }
-        }
-        else // otherwise we operate on rows (Y values)
-        {
-            if (y % 2 == 0) // Even rows, counting from left to right
-            {
-                i = y * MatrixX + x;
-            }
-            else // Odd rows, counting from right to left
-            {
-                i = y * MatrixY + (MatrixY - 1 - x);
-            }
-        }
+        scales.xyVals[i] = random(xyRandom);
     }
-
-    // Optionally invert the index
-    if (flip == true)
-    {
-        i = NUM_LEDS - 1 - i;
-    }
-    return i;
 }
 
 //void changeScales(scaleLimits lumScales, scaleLimits colScales, int speed, bool change_all, bool reporting) 
@@ -288,25 +276,7 @@ void changeScales(scales &scales, int speed, bool change_all, bool reporting)
     }
 }
 
-void initializePerlin (scales &scales, int scaleStartingPoint, int xyRandom) {
 
-    // the scale scaleStartingPoint determines how "dramatic" the startup animation looks
-    scales.lumRampX.go(scaleStartingPoint, 0, LINEAR);
-    scales.lumRampY.go(scaleStartingPoint, 0, LINEAR);
-    scales.colRampX.go(scaleStartingPoint, 0, LINEAR);
-    scales.colRampY.go(scaleStartingPoint, 0, LINEAR);
-
-    // random xy values for the noise field to ensure different startup each time
-    for (int i = 0; i < 4; i++)
-    {
-        scales.xyVals[i] = random(xyRandom);
-    }
-}
-
-uint8_t paletteIndex, switchPalette;
-
-rampInt briRamp;
-uint8_t switchBrightness;
 void changeBrightness(int bri_speed, bool increment = false, uint8_t targetBri = 255, bool reporting = false)
 {
     if (increment)
@@ -336,8 +306,10 @@ void changeBrightness(int bri_speed, bool increment = false, uint8_t targetBri =
     }
 }
 
-uint8_t switchStripRange;
-void changeStripRange(stripRange &stripRange, bool increment = false, bool reporting = false, int upper_target = LAST_LED, int lower_target = 0, int upper_speed = 1000, int lower_speed = 1000)
+
+// ########## STRIP MARGINS ##########
+
+void changeStripRange(stripRange &stripRange, bool increment = false, bool reporting = false, int upper_target = LAST_LED, int lower_target = 0, int speed = 1000)
 {
     if (increment)
     {
@@ -349,33 +321,33 @@ void changeStripRange(stripRange &stripRange, bool increment = false, bool repor
             stripRange.upper_limit = LAST_LED;
             stripRange.lower_limit = 0;
             
-            stripRange.upper_speed = 1000;
-            stripRange.lower_speed = 1000;
+            stripRange.upper_speed = 2000;
+            stripRange.lower_speed = 2000;
         }
         else if (switchStripRange == 1)
         {
             stripRange.upper_limit = LAST_LED * 0.75;
-            stripRange.lower_limit = 0;
-            
-            stripRange.upper_speed = 1000;
-            stripRange.lower_speed = 1000;
+            stripRange.lower_limit = LAST_LED * 0.25;
+
+            stripRange.upper_speed = 2000;
+            stripRange.lower_speed = 2000;
         }
         else if (switchStripRange == 2)
         {
             stripRange.upper_limit = LAST_LED * 0.25;
             stripRange.lower_limit = 0;
             
-            stripRange.upper_speed = 1000;
-            stripRange.lower_speed = 1000;
+            stripRange.upper_speed = 2000;
+            stripRange.lower_speed = 2000;
         }
     }
     else
     {
         stripRange.upper_limit = upper_target;
-        stripRange.upper_speed = upper_speed;
+        stripRange.upper_speed = speed;
 
         stripRange.lower_limit = lower_target;
-        stripRange.lower_speed = lower_speed;
+        stripRange.lower_speed = speed;
     }
 
     stripRange.upperRamp.go(stripRange.upper_limit, stripRange.upper_speed, CIRCULAR_INOUT);
@@ -424,4 +396,178 @@ void updateRange(uint8_t lower, uint8_t upper, uint8_t steps)
             leds[k].subtractFromRGB(value);
         }
     }
+}
+
+
+// ########## PALETTE GENERATION ##########
+
+// Helper function to test if two hues are separate by a desired distance
+bool testDistance(uint8_t first_hue, uint8_t second_hue, uint8_t minDistance)
+{
+    uint8_t test1 = first_hue - second_hue;
+    uint8_t test2 = second_hue - first_hue;
+    return (test1 <= minDistance) || (test2 <= minDistance);
+}
+
+// randomizes the hues of the palette based on defined constraints
+void generateNewHues(palette &palette, const uint8_t minDistance, bool exclude_green, bool reporting = false)
+{
+    uint8_t green_low = 85;
+    uint8_t green_hih = 85;
+
+    if (exclude_green)
+    {
+        uint8_t green_low = 75;
+        uint8_t green_hih = 120;
+    }
+
+    uint8_t hue_old = palette.hueA;
+
+    do // Generate the first color
+    {
+        palette.hueA = random(256);
+    } while (testDistance(palette.hueA, hue_old, minDistance) || (palette.hueA >= green_low && palette.hueA <= green_hih));
+
+    do // Generate the second color
+    {
+        palette.hueB = random(256);
+    } while (testDistance(palette.hueB, palette.hueA, minDistance) || (palette.hueB >= green_low && palette.hueB <= green_hih));
+
+    do // Generate the third color
+    {
+        palette.hueC = random(256);
+    } while (testDistance(palette.hueC, palette.hueA, minDistance) || testDistance(palette.hueC, palette.hueB, minDistance) || (palette.hueC >= green_low && palette.hueC <= green_hih));
+
+    do // Generate the fourth color
+    {
+        palette.hueD = random(256);
+    } while (testDistance(palette.hueD, palette.hueA, minDistance) || testDistance(palette.hueD, palette.hueB, minDistance) || testDistance(palette.hueD, palette.hueC, minDistance) || (palette.hueD >= green_low && palette.hueD <= green_hih));
+
+    if (reporting)
+    {
+        Serial.println();
+        if (exclude_green)
+        {
+            Serial.print(">> randomized hues (A,B,C,D), no green: ");
+        }
+        else
+        {
+            Serial.print(">> randomized hues (A,B,C,D): ");
+        }
+        Serial.print(palette.hueA);
+        Serial.print(", ");
+        Serial.print(palette.hueB);
+        Serial.print(", ");
+        Serial.print(palette.hueC);
+        Serial.print(", ");
+        Serial.println(palette.hueD);
+    }
+}
+
+// assigns color instruction to the four palette colors based on requested palette type
+void updatePalette(palette &palette, const String &paletteType, bool increment = false, bool new_hues = false, bool exclude_green = false, bool reporting = false)
+{
+    if (new_hues)
+    {
+        generateNewHues(palette, 30, exclude_green, reporting);
+    }
+
+    if (increment)
+    {
+        switchPalette = (switchPalette + 1) % (sizeof(paletteNames) / sizeof(paletteNames[0]));
+        paletteType = paletteNames[switchPalette];
+    }
+
+    if (paletteType == "monochrome")
+    {
+        palette.col[0] = {palette.hueA, 10, 100, 255, 155, 255};
+        palette.col[1] = {palette.hueA, 10, 155, 255, 55, 255};
+        palette.col[2] = {palette.hueA, 10, 155, 255, 55, 255};
+        palette.col[3] = {palette.hueA, 10, 100, 255, 155, 255};
+    }
+    else if (paletteType == "duotone")
+    {
+        palette.col[0] = {palette.hueA, 10, 25, 255, 155, 255};
+        palette.col[1] = {palette.hueA, 10, 155, 255, 55, 255};
+        palette.col[2] = {palette.hueB, 10, 155, 255, 55, 255};
+        palette.col[3] = {palette.hueB, 10, 25, 255, 155, 255};
+    }
+    else if (paletteType == "tricolore")
+    {
+        palette.col[0] = {palette.hueA, 10, 25, 255, 155, 255};
+        palette.col[1] = {palette.hueA, 10, 155, 255, 55, 255};
+        palette.col[2] = {palette.hueB, 10, 155, 255, 55, 255};
+        palette.col[3] = {palette.hueC, 10, 155, 255, 155, 255};
+    }
+    else if (paletteType == "pastel")
+    {
+        palette.col[0] = {palette.hueA, 0, 0, 0, 255, 255};
+        palette.col[1] = {palette.hueA, 0, 0, 0, 255, 255};
+        palette.col[2] = {palette.hueA, 0, 0, 0, 255, 255};
+        palette.col[3] = {palette.hueA, 0, 0, 0, 255, 255};
+    }
+    else if (paletteType == "pastelAccent")
+    {
+        palette.col[0] = {palette.hueA, 10, 0, 25, 25, 255};
+        palette.col[1] = {palette.hueB, 10, 205, 255, 155, 255};
+        palette.col[2] = {palette.hueA, 10, 0, 25, 25, 255};
+        palette.col[3] = {palette.hueA, 10, 0, 25, 25, 255};
+    }
+    else if (paletteType == "static")
+    {
+        palette.col[0] = {palette.hueA, 0, 255, 255, 255, 255};
+        palette.col[1] = {palette.hueA, 0, 255, 255, 255, 255};
+        palette.col[2] = {palette.hueA, 0, 255, 255, 255, 255};
+        palette.col[3] = {palette.hueA, 0, 255, 255, 255, 255};
+    }
+    else // "Unknown palette type"
+    {
+        palette.col[0] = {palette.hueA, 10, 1, 255, 1, 255};
+        palette.col[1] = {palette.hueB, 10, 1, 255, 1, 255};
+        palette.col[2] = {palette.hueC, 10, 1, 255, 1, 255};
+        palette.col[3] = {palette.hueD, 10, 1, 255, 1, 255};
+    }
+
+    if (reporting)
+    {
+        Serial.println();
+        Serial.print(">> updating ");
+        Serial.print(paletteType);
+        Serial.println(" palette");
+    }
+}
+
+
+// ########## TEST FUNCTIONS ##########
+
+// test function to increment hues to determine undesired values
+void findUglyHues(palette &palette)
+{
+    uint8_t index = palette.hueA;
+    index = index + 10;
+    Serial.println(index);
+
+    palette.hueA = index;
+    updatePalette(palette, "static", false, false, false, true);
+    triggerBlend(250, true);
+}
+
+// Helper function to reveal the center of the matrix
+void showCenter()
+{
+    for (int y = 0; y < MatrixY; y++)
+    {
+        leds[mtx(MatrixX / 2, y)] = CRGB::Blue;
+        // leds[mtx(9, y)] = CRGB::Blue;
+    };
+    for (int x = 0; x < MatrixX; x++)
+    {
+        leds[mtx(x, MatrixY / 2)] = CRGB::Green;
+        // leds[mtx(x, 0)] = CRGB::Green;
+    };
+}
+
+bool isColorEqual(const CRGB &color1, const CRGB &color2)
+{
+    return (color1.r == color2.r && color1.g == color2.g && color1.b == color2.b);
 }
