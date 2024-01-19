@@ -1,6 +1,6 @@
 rampInt briRamp;
 ramp blendRamp1, blendRamp2;
-bool blending, stored_colors;
+bool blending, stored_colors, palette_changed;
 uint8_t paletteIndex, switchPalette, switchBrightness, switchStripRange;
 
 // Struct to hold info on color ranges in order to request certain palette types
@@ -49,7 +49,6 @@ struct stripRange
 
 
 // ########## MATRIX ##########
-
 uint8_t mtx(uint8_t x, uint8_t y)
 {
     // any out of bounds address maps to the first hidden pixel
@@ -100,7 +99,6 @@ uint8_t mtx(uint8_t x, uint8_t y)
 
 
 // ########## COLOR BLENDING ##########
-
 // Helper function to generate a float within a defined range
 float random_float(float minValue, float maxValue)
 {
@@ -157,7 +155,7 @@ void assemblePalette(palette &palette, bool change_all, bool reporting = false)
 }
 
 // triggers a color blend event
-void triggerBlend(int blend_speed, bool reporting = false)
+void triggerBlend(palette &palette, int blend_speed, bool change_all = true, bool reporting = false)
 {
     if (blendRamp2.isFinished() == 1)
     {
@@ -166,6 +164,8 @@ void triggerBlend(int blend_speed, bool reporting = false)
             Serial.println();
             Serial.println(">> triggered color blend");
         }
+
+        assemblePalette(palette, change_all, reporting);
 
         blending = true;
         stored_colors = false;
@@ -204,12 +204,11 @@ void shuffleColors(CRGB *inputColor) {
 }
 
 // Function to blend colors upon request
-void blendColors(palette &palette, bool shuffle = true, bool change_all = true, bool reporting = false)
+void blendColors(palette &palette, bool shuffle = true, bool reporting = false)
 {
     // some operations that only happen during first call of this function
     if (blending == true && stored_colors == false)
     {
-        assemblePalette(palette, change_all, reporting);
         // if requested, the colors will be shuffled
         if (shuffle)
         {
@@ -237,11 +236,16 @@ void blendColors(palette &palette, bool shuffle = true, bool change_all = true, 
             blendRamp2.go(0, 0, NONE);
             blending = false;
         }
+        
+        if (palette_changed && blendRamp2.isFinished() == 1)
+        {
+            palette_changed = false;
+            briRamp.go(brightnessVals[switchBrightness], 1500, LINEAR);
+        }
 }
 
 
 // ########## SCALE FUNCTIONS ##########
-
 // startup function to set the initial values for the noise scaling
 void initializePerlin(scales &scales, int scaleStartingPoint, int xyRandom)
 {
@@ -308,7 +312,6 @@ void changeBrightness(int bri_speed, bool increment = false, uint8_t targetBri =
 
 
 // ########## STRIP MARGINS ##########
-
 void changeStripRange(stripRange &stripRange, bool increment = false, bool reporting = false, int upper_target = LAST_LED, int lower_target = 0, int speed = 1000)
 {
     if (increment)
@@ -316,29 +319,31 @@ void changeStripRange(stripRange &stripRange, bool increment = false, bool repor
         //switchStripRange = (switchStripRange + 1) % (sizeof(stripRangeVals) / sizeof(stripRangeVals[0]));
         switchStripRange = (switchStripRange + 1) % 3;
 
+        int overall_speed = 1000;
+
         if (switchStripRange == 0)
         {
             stripRange.upper_limit = LAST_LED;
             stripRange.lower_limit = 0;
-            
-            stripRange.upper_speed = 2000;
-            stripRange.lower_speed = 2000;
+
+            stripRange.upper_speed = overall_speed;
+            stripRange.lower_speed = overall_speed;
         }
         else if (switchStripRange == 1)
         {
             stripRange.upper_limit = LAST_LED * 0.75;
             stripRange.lower_limit = LAST_LED * 0.25;
 
-            stripRange.upper_speed = 2000;
-            stripRange.lower_speed = 2000;
+            stripRange.upper_speed = overall_speed;
+            stripRange.lower_speed = overall_speed;
         }
         else if (switchStripRange == 2)
         {
             stripRange.upper_limit = LAST_LED * 0.25;
             stripRange.lower_limit = 0;
-            
-            stripRange.upper_speed = 2000;
-            stripRange.lower_speed = 2000;
+
+            stripRange.upper_speed = overall_speed;
+            stripRange.lower_speed = overall_speed;
         }
     }
     else
@@ -400,7 +405,6 @@ void updateRange(uint8_t lower, uint8_t upper, uint8_t steps)
 
 
 // ########## PALETTE GENERATION ##########
-
 // Helper function to test if two hues are separate by a desired distance
 bool testDistance(uint8_t first_hue, uint8_t second_hue, uint8_t minDistance)
 {
@@ -412,13 +416,13 @@ bool testDistance(uint8_t first_hue, uint8_t second_hue, uint8_t minDistance)
 // randomizes the hues of the palette based on defined constraints
 void generateNewHues(palette &palette, const uint8_t minDistance, bool exclude_green, bool reporting = false)
 {
-    uint8_t green_low = 85;
-    uint8_t green_hih = 85;
+    uint8_t green_low = 96;
+    uint8_t green_hih = 96;
 
     if (exclude_green)
     {
         uint8_t green_low = 75;
-        uint8_t green_hih = 120;
+        uint8_t green_hih = 115;
     }
 
     uint8_t hue_old = palette.hueA;
@@ -539,7 +543,6 @@ void updatePalette(palette &palette, const String &paletteType, bool increment =
 
 
 // ########## TEST FUNCTIONS ##########
-
 // test function to increment hues to determine undesired values
 void findUglyHues(palette &palette)
 {
@@ -549,10 +552,10 @@ void findUglyHues(palette &palette)
 
     palette.hueA = index;
     updatePalette(palette, "static", false, false, false, true);
-    triggerBlend(250, true);
+    triggerBlend(palette, 250, true, true);
 }
 
-// Helper function to reveal the center of the matrix
+// helper function to reveal the center of the matrix
 void showCenter()
 {
     for (int y = 0; y < MatrixY; y++)
@@ -567,6 +570,7 @@ void showCenter()
     };
 }
 
+// helper fucntion to test if two colors are the same
 bool isColorEqual(const CRGB &color1, const CRGB &color2)
 {
     return (color1.r == color2.r && color1.g == color2.g && color1.b == color2.b);

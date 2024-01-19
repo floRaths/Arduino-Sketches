@@ -36,10 +36,22 @@ void buttonClick() {
 }
 
 void buttonHold() {
+  Serial.println();
+  Serial.println("#### Palette Button ####");
+
+  // reset any palette blending if needed
+  blendRamp1.pause(); blendRamp1.go(0, 0);
+  blendRamp2.pause(); blendRamp2.go(0, 0);
+
+  changeBrightness(125, false, 0, true);
+
   generateNewHues(pllt, 30, true);
-  updatePalette(pllt, pllt.paletteType, true, true);
-  triggerBlend(500, true);
-  //blendColors(pllt, true, true, false);
+  updatePalette(pllt, pllt.paletteType, true, true, true, true);
+  triggerBlend(pllt, 750, true, true);
+  
+  changeScales(scls, 2000, true, true);
+
+  palette_changed = true;
 }
 
 // ################## SETUP ####################
@@ -55,7 +67,8 @@ void setup()
   FastLED.setBrightness(0);
 
   btn.attachClick(buttonClick);
-  //btn.attachLongPressStart(buttonHold);
+  btn.attachLongPressStart(buttonHold);
+  btn.setPressMs(250);
 
   Serial.println();
   Serial.println("######## Hello Lamp ########");
@@ -78,8 +91,8 @@ void setup()
   changeBrightness(2500, false, brightnessVals[0], true);
   changeStripRange(strp, false, true, strp.upper_limit, strp.lower_limit, 3000);
 
-  triggerBlend  (50, false);
-  blendColors   (pllt, true, true, false);
+  triggerBlend  (pllt, 50, true, false);
+  blendColors   (pllt, true, false);
 }
 
 
@@ -90,19 +103,19 @@ void loop()
 
   EVERY_N_MILLISECONDS(changes)
   {
-    updatePalette   (pllt, pllt.paletteType, false, false, true, true);
-    triggerBlend    (changes*0.95, true);
+    updatePalette   (pllt, pllt.paletteType, false, true, true, true);
+    triggerBlend    (pllt, changes*0.95, true, true);
     changeScales    (scls, changes, false, false);
   }
 
-  blendColors(pllt, true, true, false);
+  uint16_t beatA = beatsin16(2, 0, 255);
+  paletteIndex = beatA;
+
+  blendColors(pllt, true, false);
   makeNoise(pllt, scls, hurry, true);
-  //showCenter();
   updateRange(strp.lowerRamp.update(), strp.upperRamp.update(), 10);
   FastLED.setBrightness(briRamp.update());
-  //fadeToBlackBy(leds, NUM_LEDS, 64);
+  fadeToBlackBy(leds, NUM_LEDS, 64);
   FastLED.show();
   btn.tick();
 }
-
-
