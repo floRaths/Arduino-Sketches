@@ -498,10 +498,10 @@ void updatePalette(palette &palette, const String &paletteType, bool increment =
     }
     else if (paletteType == "tricolore")
     {
-        palette.col[0] = {palette.hueA, 10, 25, 255, 155, 255};
-        palette.col[1] = {palette.hueA, 10, 155, 255, 55, 255};
-        palette.col[2] = {palette.hueB, 10, 155, 255, 55, 255};
-        palette.col[3] = {palette.hueC, 10, 155, 255, 155, 255};
+        palette.col[0] = {palette.hueA, 10, 85, 255, 155, 255};
+        palette.col[1] = {palette.hueA, 10, 155, 255, 128, 255};
+        palette.col[2] = {palette.hueB, 10, 155, 255, 128, 255};
+        palette.col[3] = {palette.hueC, 10, 200, 255, 155, 255};
     }
     else if (paletteType == "pastel")
     {
@@ -575,3 +575,4 @@ bool isColorEqual(const CRGB &color1, const CRGB &color2)
 {
     return (color1.r == color2.r && color1.g == color2.g && color1.b == color2.b);
 }
+
