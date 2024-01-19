@@ -1,5 +1,8 @@
 int maxLumValue = 0; // Assume the first element is the maximum
 
+// uint8_t testDataBefore = 128;
+// CRGB colorz = CRGB::Green;
+
 void makeNoise(palette pllt, scales &scales, int motionSpeed, bool dataSmoothing)
 {
     uint8_t lumNoise[MatrixX][MatrixY]; 
@@ -71,6 +74,22 @@ void makeNoise(palette pllt, scales &scales, int motionSpeed, bool dataSmoothing
                                                // noiseCols[(y * MatrixX) + x], // when used with 1D colors
                                                colData[x][y] + paletteIndex,
                                                brighten8_lin(lumData[x][y]));
+
+            // if (lumData[MatrixX / 2][MatrixY / 2] > testDataBefore)
+            // { // Increasing
+            //     leds[mtx(MatrixX / 2, MatrixY / 2)] = CRGB::Green;
+            //     colorz = CRGB::Green;
+            // }
+            // else if (lumData[MatrixX / 2][MatrixY / 2] < testDataBefore)
+            // { // Decreasing
+            //     leds[mtx(MatrixX / 2, MatrixY / 2)] = CRGB::Red;
+            //     colorz = CRGB::Red;
+            // }
+
+            // leds[mtx(MatrixX / 2, MatrixY / 2)] = colorz;
+
+            // testDataBefore = lumData[MatrixX / 2][MatrixY / 2];
         }
+
     }
 }

@@ -7,10 +7,10 @@
 
 OneButton btn = OneButton(BTN_PIN, true, true);
 
-const uint8_t MatrixX = 10;
+const uint8_t MatrixX = 8;
 const uint8_t MatrixY = 10;
 #define NUM_LEDS MatrixX * MatrixY
-#define LAST_LED 100
+#define LAST_LED 80
 CRGB leds[NUM_LEDS];
 
 const bool coil = true;
@@ -18,29 +18,19 @@ const bool flip = false;
 const bool serpentine = false;
 const bool prototyping = false;
 
-uint8_t hurry = 6;
+uint8_t hurry = 4;
 const char *paletteNames[] = {"monochrome", "duotone", "tricolore", "pastel", "pastelAccent", "static"};
 const int  *brightnessVals[] = {255, 128, 86};
 
 #include "auxFnss/auxFnss.h"
-#include "palettes/palettes.h"
 
 palette pllt;
 scales  scls;
 stripRange strp;
 
+#include "buttons/buttons.h"
 
-void buttonClick() {
-  changeBrightness(1000, true, 255, true);
-  changeStripRange(strp, true, true);
-}
-
-void buttonHold() {
-  generateNewHues(pllt, 30, true);
-  updatePalette(pllt, pllt.paletteType, true, true);
-  triggerBlend(500, true);
-  //blendColors(pllt, true, true, false);
-}
+ramp indexRamp;
 
 // ################## SETUP ####################
 void setup()
@@ -55,54 +45,56 @@ void setup()
   FastLED.setBrightness(0);
 
   btn.attachClick(buttonClick);
-  //btn.attachLongPressStart(buttonHold);
+  btn.attachLongPressStart(buttonHold);
+  btn.setPressMs(250);
 
   Serial.println();
   Serial.println("######## Hello Lamp ########");
   Serial.println("############################");
 
-  pllt.hueA = 30;
-  pllt.hueB = 50;
-  pllt.paletteType = "duotone";
+  // pllt.hueA = 30;
+  // pllt.hueB = 150;
+  pllt.paletteType = "tricolore";
 
-  scls.colScales = {1000, 10000, 1000, 10000};
-  scls.lumScales = {5000, 15000, 5000, 15000};
+  scls.colScales = {5000, 10000, 5000, 10000};
+  scls.lumScales = {5000, 25000, 5000, 25000};
 
   strp.upper_limit = LAST_LED;
   strp.lower_limit = 0;
 
   initializePerlin(scls, 500, 10000);
 
-  updatePalette   (pllt, pllt.paletteType);
-  changeScales    (scls, 6000, false, false);
-  changeBrightness(2500, false, brightnessVals[0], true);
-  changeStripRange(strp, false, true, strp.upper_limit, strp.lower_limit, 3000);
+  updatePalette   (pllt, pllt.paletteType, false, true, true);
+  changeScales    (scls, 8000, false, false);
+  changeBrightness(3500, false, brightnessVals[0], true);
+  changeStripRange(strp, false, true, strp.upper_limit, strp.lower_limit, 5000);
 
-  triggerBlend  (50, false);
-  blendColors   (pllt, true, true, false);
+  triggerBlend  (pllt, 50, true, false);
+  blendColors   (pllt, true, false);
+
+  //indexRamp.go(255, 20000, LINEAR, BACKANDFORTH);
 }
 
 
 // ################## LOOP ####################
 void loop()
 {
-  int changes = 30000;
+  int changes = 33000;
 
   EVERY_N_MILLISECONDS(changes)
   {
-    updatePalette   (pllt, pllt.paletteType, false, false, true, true);
-    triggerBlend    (changes*0.95, true);
+    updatePalette   (pllt, pllt.paletteType, false, true, true, true);
+    triggerBlend    (pllt, changes*0.95, false, true);
     changeScales    (scls, changes, false, false);
   }
 
-  blendColors(pllt, true, true, false);
+  //paletteIndex = indexRamp.update();
+
+  blendColors(pllt, true, false);
   makeNoise(pllt, scls, hurry, true);
-  //showCenter();
   updateRange(strp.lowerRamp.update(), strp.upperRamp.update(), 10);
   FastLED.setBrightness(briRamp.update());
-  //fadeToBlackBy(leds, NUM_LEDS, 64);
+  // fadeToBlackBy(leds, NUM_LEDS, 64);
   FastLED.show();
   btn.tick();
 }
-
-
