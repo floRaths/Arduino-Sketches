@@ -49,42 +49,52 @@ struct stripRange
 
 
 // ########## MATRIX ##########
-uint8_t mtx(uint8_t x, uint8_t y)
+
+uint8_t mtx(uint8_t x, uint8_t y, int8_t xOffset)
 {
-    // any out of bounds address maps to the first hidden pixel
-    if ((x >= MatrixX) || (y >= MatrixY))
+    // Calculate the new x position based on the offset
+    int8_t newX = (x + xOffset) % MatrixX;
+
+    // Ensure newX is within bounds
+    if (newX < 0)
     {
-        return (NUM_LEDS);
+        newX += MatrixX; // Wrap around to the right side
+    }
+
+    // Check if the new coordinates are out of bounds
+    if ((newX < 0) || (newX >= MatrixX) || (y >= MatrixY))
+    {
+        return NUM_LEDS; // Out of bounds, return sentinel value
     }
 
     uint8_t i;
 
     if (coil == true)
     {
-        i = (y * MatrixX) + x;
+        i = (y * MatrixX) + newX;
     }
     else
     {
         if (serpentine == true) // Even columns, counting from top to bottom
         {
-            if (x % 2 == 0)
+            if (newX % 2 == 0)
             {
-                i = x * MatrixY + y;
+                i = newX * MatrixY + y;
             }
             else // Odd columns, counting from bottom to top
             {
-                i = x * MatrixY + (MatrixY - 1 - y);
+                i = newX * MatrixY + (MatrixY - 1 - y);
             }
         }
-        else // otherwise we operate on rows (Y values)
+        else // Otherwise, we operate on rows (Y values)
         {
             if (y % 2 == 0) // Even rows, counting from left to right
             {
-                i = y * MatrixX + x;
+                i = y * MatrixX + newX;
             }
             else // Odd rows, counting from right to left
             {
-                i = y * MatrixY + (MatrixY - 1 - x);
+                i = y * MatrixY + (MatrixY - 1 - newX);
             }
         }
     }
@@ -96,6 +106,54 @@ uint8_t mtx(uint8_t x, uint8_t y)
     }
     return i;
 }
+
+// uint8_t mtx(uint8_t x, uint8_t y)
+// {
+//     // any out of bounds address maps to the first hidden pixel
+//     if ((x >= MatrixX) || (y >= MatrixY))
+//     {
+//         return (NUM_LEDS);
+//     }
+
+//     uint8_t i;
+
+//     if (coil == true)
+//     {
+//         i = (y * MatrixX) + x;
+//     }
+//     else
+//     {
+//         if (serpentine == true) // Even columns, counting from top to bottom
+//         {
+//             if (x % 2 == 0)
+//             {
+//                 i = x * MatrixY + y;
+//             }
+//             else // Odd columns, counting from bottom to top
+//             {
+//                 i = x * MatrixY + (MatrixY - 1 - y);
+//             }
+//         }
+//         else // otherwise we operate on rows (Y values)
+//         {
+//             if (y % 2 == 0) // Even rows, counting from left to right
+//             {
+//                 i = y * MatrixX + x;
+//             }
+//             else // Odd rows, counting from right to left
+//             {
+//                 i = y * MatrixY + (MatrixY - 1 - x);
+//             }
+//         }
+//     }
+
+//     // Optionally invert the index
+//     if (flip == true)
+//     {
+//         i = NUM_LEDS - 1 - i;
+//     }
+//     return i;
+// }
 
 
 // ########## COLOR BLENDING ##########
@@ -123,10 +181,12 @@ CHSV colorFromRange(uint8_t baseHue, uint8_t hue_fluct, uint8_t sat_min, uint8_t
 
     if (reporting)
     {
+        Serial.print("H: ");
         Serial.print(hue);
-        Serial.print(", ");
+        Serial.print(", S: ");
         Serial.print(sat);
-        Serial.print(", ");
+        Serial.print(", V: ");
+        
         Serial.print(bri);
         Serial.println("");
     }
@@ -135,49 +195,9 @@ CHSV colorFromRange(uint8_t baseHue, uint8_t hue_fluct, uint8_t sat_min, uint8_t
     return color;
 }
 
-// Assembles a new 4-color palette from a set of instructions. Can be set to only assemble random subcolors
-void assemblePalette(palette &palette, bool change_all, bool reporting = false)
-{
-    for (int i = 0; i < 4; ++i)
-    {
-        if (change_all || random(10) % 2 == 0)
-        {
-            if (reporting) { Serial.print("newCol[" + String(i) + "] = ");}
-            palette.newCol[i] = colorFromRange( palette.col[i].hue,
-                                                palette.col[i].hueFluct,
-                                                palette.col[i].satMin,
-                                                palette.col[i].satMax,
-                                                palette.col[i].briMin,
-                                                palette.col[i].briMax,
-                                                reporting);
-        }
-    }
-}
-
-// triggers a color blend event
-void triggerBlend(palette &palette, int blend_speed, bool change_all = true, bool reporting = false)
-{
-    if (blendRamp2.isFinished() == 1)
-    {
-        if (reporting)
-        {
-            Serial.println();
-            Serial.println(">> triggered color blend");
-        }
-
-        assemblePalette(palette, change_all, reporting);
-
-        blending = true;
-        stored_colors = false;
-
-        // start interpolation of blending function
-        blendRamp1.go(255, blend_speed * random_float(0.5, 0.95), LINEAR);
-        blendRamp2.go(255, blend_speed, LINEAR);
-    }
-}
-
 // Takes an input color array and changes its order
-void shuffleColors(CRGB *inputColor) {
+void shuffleColors(CRGB *inputColor)
+{
 
     uint8_t list[] = {0, 1, 2, 3};
     CRGB tmpColor[4];
@@ -203,17 +223,65 @@ void shuffleColors(CRGB *inputColor) {
     }
 }
 
-// Function to blend colors upon request
-void blendColors(palette &palette, bool shuffle = true, bool reporting = false)
+// Assembles a new 4-color palette from a set of instructions. Can be set to only assemble random subcolors
+void assemblePalette(palette &palette, bool replace_all, bool reporting = false)
 {
-    // some operations that only happen during first call of this function
-    if (blending == true && stored_colors == false)
+    for (int i = 0; i < 4; ++i)
     {
+        if (replace_all || random(10) % 2 == 0)
+        {
+            if (reporting) { Serial.print("newCol[" + String(i) + "] = ");}
+            palette.newCol[i] = colorFromRange( palette.col[i].hue,
+                                                palette.col[i].hueFluct,
+                                                palette.col[i].satMin,
+                                                palette.col[i].satMax,
+                                                palette.col[i].briMin,
+                                                palette.col[i].briMax,
+                                                reporting);
+        }
+    }
+}
+
+// triggers a color blend event
+void triggerBlend(palette &palette, int blend_speed, bool replace_all = true, bool shuffle = true, bool reporting = false)
+{
+    // trigger can only execute when no active blending is happening
+    if (blendRamp2.isFinished() == 1)
+    {
+        if (reporting)
+        {
+            //Serial.println();
+            Serial.println(">> triggered color blend");
+        }
+
+        assemblePalette(palette, replace_all, reporting);
+
         // if requested, the colors will be shuffled
         if (shuffle)
         {
             shuffleColors(palette.newCol);
         }
+
+        blending = true;
+        stored_colors = false;
+
+        // start interpolation of blending function
+        blendRamp1.go(255, blend_speed * random_float(0.5, 0.95), LINEAR);
+        blendRamp2.go(255, blend_speed, LINEAR);
+    }
+}
+
+// Function to blend colors upon request
+void blendColors(palette &palette, bool reporting = false)
+{
+    // some operations that only happen during first call of this function
+    if (blending == true && stored_colors == false)
+    {
+        if (reporting)
+        {
+            Serial.println(">> blending initiated...");
+        }
+
         // the previous running colors are stored in an array thats used for blending
         for (int i = 0; i < 4; i++)
         {
@@ -235,12 +303,22 @@ void blendColors(palette &palette, bool shuffle = true, bool reporting = false)
             blendRamp1.go(0, 0, NONE);
             blendRamp2.go(0, 0, NONE);
             blending = false;
+            
+            if (reporting)
+            {
+                Serial.println(">> blending complete!");
+            }
         }
         
         if (palette_changed && blendRamp2.isFinished() == 1)
         {
             palette_changed = false;
             briRamp.go(brightnessVals[switchBrightness], 1500, LINEAR);
+            
+            if (reporting)
+            {
+                Serial.println(">> palette change complete!");
+            }
         }
 }
 
@@ -275,7 +353,7 @@ void changeScales(scales &scales, int speed, bool change_all, bool reporting)
 
         if (reporting)
         {
-            Serial.println("Scales Changed");
+            Serial.println(">> updating scale limits");
         }
     }
 }
@@ -449,7 +527,7 @@ void generateNewHues(palette &palette, const uint8_t minDistance, bool exclude_g
 
     if (reporting)
     {
-        Serial.println();
+        //Serial.println();
         if (exclude_green)
         {
             Serial.print(">> randomized hues (A,B,C,D), no green: ");
@@ -498,10 +576,10 @@ void updatePalette(palette &palette, const String &paletteType, bool increment =
     }
     else if (paletteType == "tricolore")
     {
-        palette.col[0] = {palette.hueA, 10, 85, 255, 155, 255};
-        palette.col[1] = {palette.hueA, 10, 155, 255, 128, 255};
-        palette.col[2] = {palette.hueB, 10, 155, 255, 128, 255};
-        palette.col[3] = {palette.hueC, 10, 200, 255, 155, 255};
+        palette.col[0] = {palette.hueA, 20,  85, 255, 150, 255};
+        palette.col[1] = {palette.hueA, 28, 155, 255, 150, 255};
+        palette.col[2] = {palette.hueB, 27, 155, 255, 150, 255};
+        palette.col[3] = {palette.hueC, 27, 155, 255, 150, 255};
     }
     else if (paletteType == "pastel")
     {
@@ -512,10 +590,10 @@ void updatePalette(palette &palette, const String &paletteType, bool increment =
     }
     else if (paletteType == "pastelAccent")
     {
-        palette.col[0] = {palette.hueA, 10, 0, 25, 25, 255};
-        palette.col[1] = {palette.hueB, 10, 205, 255, 155, 255};
-        palette.col[2] = {palette.hueA, 10, 0, 25, 25, 255};
-        palette.col[3] = {palette.hueA, 10, 0, 25, 25, 255};
+        palette.col[0] = {palette.hueA, 10,   0,   0, 200, 255};
+        palette.col[1] = {palette.hueB, 10, 205, 255, 200, 255};
+        palette.col[2] = {palette.hueA, 10,   0,   0, 200, 255};
+        palette.col[3] = {palette.hueA, 10,   0,   0, 200, 255};
     }
     else if (paletteType == "static")
     {
@@ -534,20 +612,26 @@ void updatePalette(palette &palette, const String &paletteType, bool increment =
 
     if (reporting)
     {
-        Serial.println();
-        Serial.print(">> updating ");
-        Serial.print(paletteType);
-        Serial.println(" palette");
+        if (increment) 
+        {
+            Serial.print(">> switching to ");
+            Serial.print(paletteType);
+            Serial.println(" palette");
+        } else {
+            Serial.print(">> updating ");
+            Serial.print(paletteType);
+            Serial.println(" palette");
+        }
     }
 }
 
 
 // ########## TEST FUNCTIONS ##########
 // test function to increment hues to determine undesired values
-void findUglyHues(palette &palette)
+void findUglyHues(palette &palette, int increment)
 {
     uint8_t index = palette.hueA;
-    index = index + 10;
+    index = index + increment;
     Serial.println(index);
 
     palette.hueA = index;
@@ -556,16 +640,16 @@ void findUglyHues(palette &palette)
 }
 
 // helper function to reveal the center of the matrix
-void showCenter()
+void showCenter(int xOffset = 0)
 {
     for (int y = 0; y < MatrixY; y++)
     {
-        leds[mtx(MatrixX / 2, y)] = CRGB::Blue;
+        leds[mtx(MatrixX / 2, y, xOffset)] = CRGB::Blue;
         // leds[mtx(9, y)] = CRGB::Blue;
     };
     for (int x = 0; x < MatrixX; x++)
     {
-        leds[mtx(x, MatrixY / 2)] = CRGB::Green;
+        leds[mtx(x, MatrixY / 2, xOffset)] = CRGB::Green;
         // leds[mtx(x, 0)] = CRGB::Green;
     };
 }

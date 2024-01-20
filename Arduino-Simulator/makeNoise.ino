@@ -70,10 +70,10 @@ void makeNoise(palette pllt, scales &scales, int motionSpeed, bool dataSmoothing
                 colData[x][y] = colNoise[x][y];
             }
 
-            leds[mtx(x, y)] = ColorFromPalette(runPal,
-                                               // noiseCols[(y * MatrixX) + x], // when used with 1D colors
-                                               colData[x][y] + paletteIndex,
-                                               brighten8_lin(lumData[x][y]));
+            leds[mtx(x, y, -4)] = ColorFromPalette(runPal,
+                                                        // noiseCols[(y * MatrixX) + x], // when used with 1D colors
+                                                        colData[x][y] + paletteIndex,
+                                                        brighten8_lin(lumData[x][y]));
 
             // if (lumData[MatrixX / 2][MatrixY / 2] > testDataBefore)
             // { // Increasing
