@@ -1,5 +1,5 @@
 rampInt briRamp;
-ramp blendRamp1, blendRamp2;
+ramp blendRamp1, blendRamp2, indexRamp;
 bool blending, stored_colors, palette_changed;
 uint8_t paletteIndex, switchPalette, switchBrightness, switchStripRange;
 
@@ -49,7 +49,6 @@ struct stripRange
 
 
 // ########## MATRIX ##########
-
 uint8_t mtx(uint8_t x, uint8_t y, int8_t xOffset)
 {
     // Calculate the new x position based on the offset
@@ -106,55 +105,6 @@ uint8_t mtx(uint8_t x, uint8_t y, int8_t xOffset)
     }
     return i;
 }
-
-// uint8_t mtx(uint8_t x, uint8_t y)
-// {
-//     // any out of bounds address maps to the first hidden pixel
-//     if ((x >= MatrixX) || (y >= MatrixY))
-//     {
-//         return (NUM_LEDS);
-//     }
-
-//     uint8_t i;
-
-//     if (coil == true)
-//     {
-//         i = (y * MatrixX) + x;
-//     }
-//     else
-//     {
-//         if (serpentine == true) // Even columns, counting from top to bottom
-//         {
-//             if (x % 2 == 0)
-//             {
-//                 i = x * MatrixY + y;
-//             }
-//             else // Odd columns, counting from bottom to top
-//             {
-//                 i = x * MatrixY + (MatrixY - 1 - y);
-//             }
-//         }
-//         else // otherwise we operate on rows (Y values)
-//         {
-//             if (y % 2 == 0) // Even rows, counting from left to right
-//             {
-//                 i = y * MatrixX + x;
-//             }
-//             else // Odd rows, counting from right to left
-//             {
-//                 i = y * MatrixY + (MatrixY - 1 - x);
-//             }
-//         }
-//     }
-
-//     // Optionally invert the index
-//     if (flip == true)
-//     {
-//         i = NUM_LEDS - 1 - i;
-//     }
-//     return i;
-// }
-
 
 // ########## COLOR BLENDING ##########
 // Helper function to generate a float within a defined range

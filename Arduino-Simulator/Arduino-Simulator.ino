@@ -32,8 +32,6 @@ stripRange strp;
 
 #include "buttons/buttons.h"
 
-ramp indexRamp;
-
 // ################## SETUP ####################
 void setup()
 {
