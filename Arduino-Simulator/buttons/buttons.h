@@ -19,8 +19,8 @@ void buttonHold()
 
     changeBrightness(125, false, 0, true);
 
-    generateNewHues(pllt, 30, true);
-    updatePalette(pllt, pllt.paletteType, true, true, true, true);
+    generateNewHues(pllt, 30, false, true);
+    updatePalette(pllt, pllt.paletteType, true, true);
     triggerBlend(pllt, 750, true, true);
 
     changeScales(scls, 2000, true, true);

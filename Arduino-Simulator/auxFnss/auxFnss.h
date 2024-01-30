@@ -17,10 +17,12 @@ struct colorType
 struct palette
 {
     uint8_t hueA, hueB, hueC, hueD;
-    colorType col[4];
+    colorType recipe[4];
+    
     CRGB newCol[4];
     CRGB runCol[4];
     CRGB oldCol[4];
+    
     char *paletteType;
 };
 
@@ -181,12 +183,12 @@ void assemblePalette(palette &palette, bool replace_all, bool reporting = false)
         if (replace_all || random(10) % 2 == 0)
         {
             if (reporting) { Serial.print("newCol[" + String(i) + "] = ");}
-            palette.newCol[i] = colorFromRange( palette.col[i].hue,
-                                                palette.col[i].hueFluct,
-                                                palette.col[i].satMin,
-                                                palette.col[i].satMax,
-                                                palette.col[i].briMin,
-                                                palette.col[i].briMax,
+            palette.newCol[i] = colorFromRange( palette.recipe[i].hue,
+                                                palette.recipe[i].hueFluct,
+                                                palette.recipe[i].satMin,
+                                                palette.recipe[i].satMax,
+                                                palette.recipe[i].briMin,
+                                                palette.recipe[i].briMax,
                                                 reporting);
         }
     }
@@ -442,7 +444,7 @@ bool testDistance(uint8_t first_hue, uint8_t second_hue, uint8_t minDistance)
 }
 
 // randomizes the hues of the palette based on defined constraints
-void generateNewHues(palette &palette, const uint8_t minDistance, bool exclude_green, bool reporting = false)
+void generateNewHues(palette &palette, const uint8_t minDistance, bool exclude_green = false, bool reporting = false)
 {
     uint8_t green_low = 96;
     uint8_t green_hih = 96;
@@ -497,12 +499,13 @@ void generateNewHues(palette &palette, const uint8_t minDistance, bool exclude_g
 }
 
 // assigns color instruction to the four palette colors based on requested palette type
-void updatePalette(palette &palette, const String &paletteType, bool increment = false, bool new_hues = false, bool exclude_green = false, bool reporting = false)
+// void updatePalette(palette &palette, const String &paletteType, bool increment = false, bool new_hues = false, bool exclude_green = false, bool reporting = false)
+void updatePalette(palette &palette, const String &paletteType, bool increment = false, bool reporting = false)
 {
-    if (new_hues)
-    {
-        generateNewHues(palette, 30, exclude_green, reporting);
-    }
+    // if (new_hues)
+    // {
+    //     generateNewHues(palette, 30, exclude_green, reporting);
+    // }
 
     if (increment)
     {
@@ -512,52 +515,52 @@ void updatePalette(palette &palette, const String &paletteType, bool increment =
 
     if (paletteType == "monochrome")
     {
-        palette.col[0] = {palette.hueA, 10, 100, 255, 155, 255};
-        palette.col[1] = {palette.hueA, 10, 155, 255, 55, 255};
-        palette.col[2] = {palette.hueA, 10, 155, 255, 55, 255};
-        palette.col[3] = {palette.hueA, 10, 100, 255, 155, 255};
+        palette.recipe[0] = {palette.hueA, 10, 100, 255, 155, 255};
+        palette.recipe[1] = {palette.hueA, 10, 155, 255, 55, 255};
+        palette.recipe[2] = {palette.hueA, 10, 155, 255, 55, 255};
+        palette.recipe[3] = {palette.hueA, 10, 100, 255, 155, 255};
     }
     else if (paletteType == "duotone")
     {
-        palette.col[0] = {palette.hueA, 10, 25, 255, 155, 255};
-        palette.col[1] = {palette.hueA, 10, 155, 255, 55, 255};
-        palette.col[2] = {palette.hueB, 10, 155, 255, 55, 255};
-        palette.col[3] = {palette.hueB, 10, 25, 255, 155, 255};
+        palette.recipe[0] = {palette.hueA, 10, 85,  255,  85, 255};
+        palette.recipe[1] = {palette.hueA, 10, 200, 255, 185, 255};
+        palette.recipe[2] = {palette.hueB, 10, 200, 255, 185, 255};
+        palette.recipe[3] = {palette.hueB, 10, 85,  255,  85, 255};
     }
     else if (paletteType == "tricolore")
     {
-        palette.col[0] = {palette.hueA, 20,  85, 255, 150, 255};
-        palette.col[1] = {palette.hueA, 28, 155, 255, 150, 255};
-        palette.col[2] = {palette.hueB, 27, 155, 255, 150, 255};
-        palette.col[3] = {palette.hueC, 27, 155, 255, 150, 255};
+        palette.recipe[0] = {palette.hueA, 20,  85, 255, 150, 255};
+        palette.recipe[1] = {palette.hueA, 28, 155, 255, 150, 255};
+        palette.recipe[2] = {palette.hueB, 27, 155, 255, 150, 255};
+        palette.recipe[3] = {palette.hueC, 27, 155, 255, 150, 255};
     }
     else if (paletteType == "pastel")
     {
-        palette.col[0] = {palette.hueA, 0, 0, 0, 255, 255};
-        palette.col[1] = {palette.hueA, 0, 0, 0, 255, 255};
-        palette.col[2] = {palette.hueA, 0, 0, 0, 255, 255};
-        palette.col[3] = {palette.hueA, 0, 0, 0, 255, 255};
+        palette.recipe[0] = {palette.hueA, 0, 0, 0, 255, 255};
+        palette.recipe[1] = {palette.hueA, 0, 0, 0, 255, 255};
+        palette.recipe[2] = {palette.hueA, 0, 0, 0, 255, 255};
+        palette.recipe[3] = {palette.hueA, 0, 0, 0, 255, 255};
     }
     else if (paletteType == "pastelAccent")
     {
-        palette.col[0] = {palette.hueA, 10,   0,   0, 200, 255};
-        palette.col[1] = {palette.hueB, 10, 205, 255, 200, 255};
-        palette.col[2] = {palette.hueA, 10,   0,   0, 200, 255};
-        palette.col[3] = {palette.hueA, 10,   0,   0, 200, 255};
+        palette.recipe[0] = {palette.hueA, 10,   0,   0, 200, 255};
+        palette.recipe[1] = {palette.hueB, 10, 205, 255, 200, 255};
+        palette.recipe[2] = {palette.hueA, 10,   0,   0, 200, 255};
+        palette.recipe[3] = {palette.hueA, 10,   0,   0, 200, 255};
     }
     else if (paletteType == "static")
     {
-        palette.col[0] = {palette.hueA, 0, 255, 255, 255, 255};
-        palette.col[1] = {palette.hueA, 0, 255, 255, 255, 255};
-        palette.col[2] = {palette.hueA, 0, 255, 255, 255, 255};
-        palette.col[3] = {palette.hueA, 0, 255, 255, 255, 255};
+        palette.recipe[0] = {palette.hueA, 0, 255, 255, 255, 255};
+        palette.recipe[1] = {palette.hueA, 0, 255, 255, 255, 255};
+        palette.recipe[2] = {palette.hueA, 0, 255, 255, 255, 255};
+        palette.recipe[3] = {palette.hueA, 0, 255, 255, 255, 255};
     }
     else // "Unknown palette type"
     {
-        palette.col[0] = {palette.hueA, 10, 1, 255, 1, 255};
-        palette.col[1] = {palette.hueB, 10, 1, 255, 1, 255};
-        palette.col[2] = {palette.hueC, 10, 1, 255, 1, 255};
-        palette.col[3] = {palette.hueD, 10, 1, 255, 1, 255};
+        palette.recipe[0] = {palette.hueA, 10, 1, 255, 1, 255};
+        palette.recipe[1] = {palette.hueB, 10, 1, 255, 1, 255};
+        palette.recipe[2] = {palette.hueC, 10, 1, 255, 1, 255};
+        palette.recipe[3] = {palette.hueD, 10, 1, 255, 1, 255};
     }
 
     if (reporting)
@@ -585,7 +588,7 @@ void findUglyHues(palette &palette, int increment)
     Serial.println(index);
 
     palette.hueA = index;
-    updatePalette(palette, "static", false, false, false, true);
+    updatePalette(palette, "static", false, true);
     triggerBlend(palette, 250, true, true);
 }
 
