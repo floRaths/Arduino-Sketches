@@ -20,7 +20,8 @@ const bool prototyping = false;
 const int  xOffset = -4;
 
 uint8_t hurry = 4;
-const char *paletteNames[] = {"monochrome", "duotone", "tricolore", "pastel", "pastelAccent", "static"};
+//const char *paletteNames[] = {"monochrome", "duotone", "tricolore", "pastel", "pastelAccent", "static"};
+const char *paletteNames[] = {"monochrome", "duotone"};
 const int  *brightnessVals[] = {255, 128, 86};
 
 #include "auxFnss/auxFnss.h"
@@ -80,28 +81,28 @@ void setup()
 // ################## LOOP ####################
 void loop()
 {
-  EVERY_N_SECONDS(65)
+  EVERY_N_SECONDS(180)
   {
     Serial.println();
     Serial.println("######## Introducing New Hues ########");
     generateNewHues(pllt, 15, true, true);
-    updatePalette  (pllt, pllt.paletteType, false, true, true);
-    triggerBlend   (pllt, 15000, true, true);
+    updatePalette(pllt, pllt.paletteType, false, true, true);
+    triggerBlend(pllt, 25000, true, true);
   }
-  
-  EVERY_N_SECONDS(23)
+
+  EVERY_N_SECONDS(32)
   {
     Serial.println();
     Serial.println("######## Palette Randomizaiton ########");
-    updatePalette (pllt, pllt.paletteType, false, false, true);
-    triggerBlend  (pllt, 15000, true, true);
+    updatePalette(pllt, pllt.paletteType, false, false, true);
+    triggerBlend(pllt, 25000, true, true);
   }
 
   EVERY_N_SECONDS(70)
   {
     Serial.println();
     Serial.println("######## Scale Randomizaiton ########");
-    changeScales(scls, 15000, true, true);
+    changeScales(scls, 25000, true, true);
   }
 
   paletteIndex = indexRamp.update();

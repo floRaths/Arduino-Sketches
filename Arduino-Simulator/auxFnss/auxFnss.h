@@ -147,14 +147,6 @@ CHSV colorFromRange(uint8_t baseHue, uint8_t hue_fluct, uint8_t sat_min, uint8_t
     return color;
 }
 
-void stop_reset_blend()
-{   // reset any palette blending if needed
-    blendRamp1.pause();
-    blendRamp1.go(0, 0);
-    blendRamp2.pause();
-    blendRamp2.go(0, 0);
-}
-
 // Takes an input color array and changes its order
 void shuffleColors(CRGB *inputColor)
 {
@@ -205,7 +197,11 @@ void assemblePalette(palette &palette, bool replace_all, bool reporting = false)
 // triggers a color blend event
 void triggerBlend(palette &palette, unsigned long blend_speed, bool shuffle = true, bool reporting = false)
 {
-    stop_reset_blend();
+    // reset any palette blending if needed
+    blendRamp1.pause();
+    blendRamp1.go(0, 0);
+    blendRamp2.pause();
+    blendRamp2.go(0, 0);
 
     // trigger can only execute when no active blending is happening
     if (blendRamp2.isFinished() == 1)
@@ -645,13 +641,12 @@ void showCenter(int xOffset = 0)
     for (int y = 0; y < MatrixY; y++)
     {
         leds[mtx(MatrixX / 2, y, xOffset)] = CRGB::Blue;
-        // leds[mtx(9, y)] = CRGB::Blue;
     };
     for (int x = 0; x < MatrixX; x++)
     {
-        leds[mtx(x, MatrixY / 2, xOffset)] = CRGB::Green;
-        // leds[mtx(x, 0)] = CRGB::Green;
+        leds[mtx(x, MatrixY / 2, xOffset)] = CRGB::Blue;
     };
+    leds[mtx(MatrixX / 2, MatrixY / 2, xOffset)] = CRGB::Red;
 }
 
 // helper fucntion to test if two colors are the same
