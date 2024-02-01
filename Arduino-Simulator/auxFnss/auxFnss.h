@@ -147,6 +147,14 @@ CHSV colorFromRange(uint8_t baseHue, uint8_t hue_fluct, uint8_t sat_min, uint8_t
     return color;
 }
 
+void stop_reset_blend()
+{   // reset any palette blending if needed
+    blendRamp1.pause();
+    blendRamp1.go(0, 0);
+    blendRamp2.pause();
+    blendRamp2.go(0, 0);
+}
+
 // Takes an input color array and changes its order
 void shuffleColors(CRGB *inputColor)
 {
@@ -182,7 +190,7 @@ void assemblePalette(palette &palette, bool replace_all, bool reporting = false)
     {
         if (replace_all || random(10) % 2 == 0)
         {
-            if (reporting) { Serial.print("newCol[" + String(i) + "] = ");}
+            if (reporting) { Serial.print("    newCol[" + String(i) + "] = ");}
             palette.newCol[i] = colorFromRange( palette.recipe[i].hue,
                                                 palette.recipe[i].hueFluct,
                                                 palette.recipe[i].satMin,
@@ -195,18 +203,18 @@ void assemblePalette(palette &palette, bool replace_all, bool reporting = false)
 }
 
 // triggers a color blend event
-void triggerBlend(palette &palette, int blend_speed, bool replace_all = true, bool shuffle = true, bool reporting = false)
+void triggerBlend(palette &palette, unsigned long blend_speed, bool shuffle = true, bool reporting = false)
 {
+    stop_reset_blend();
+
     // trigger can only execute when no active blending is happening
     if (blendRamp2.isFinished() == 1)
     {
         if (reporting)
         {
-            //Serial.println();
+            Serial.println();
             Serial.println(">> triggered color blend");
         }
-
-        assemblePalette(palette, replace_all, reporting);
 
         // if requested, the colors will be shuffled
         if (shuffle)
@@ -258,6 +266,7 @@ void blendColors(palette &palette, bool reporting = false)
             
             if (reporting)
             {
+                //Serial.println();
                 Serial.println(">> blending complete!");
             }
         }
@@ -269,6 +278,7 @@ void blendColors(palette &palette, bool reporting = false)
             
             if (reporting)
             {
+                Serial.println();
                 Serial.println(">> palette change complete!");
             }
         }
@@ -294,18 +304,55 @@ void initializePerlin(scales &scales, int scaleStartingPoint, int xyRandom)
 }
 
 //void changeScales(scaleLimits lumScales, scaleLimits colScales, int speed, bool change_all, bool reporting) 
-void changeScales(scales &scales, int speed, bool change_all, bool reporting)
+void changeScales(scales &scales, unsigned long speed, bool change_all, bool reporting = false)
 {
+    if (reporting)
+        {
+            Serial.println();
+            Serial.println(">> updating scale limits");
+        }
+
     if (change_all || random(10) % 2 == 0)
     {
-        scales.lumRampX.go(random(scales.lumScales.xMin, scales.lumScales.xMax), speed * random_float(0.5, 1.5), BACK_INOUT);
-        scales.lumRampY.go(random(scales.lumScales.yMin, scales.lumScales.yMax), speed * random_float(0.5, 1.5), BACK_INOUT);
-        scales.colRampX.go(random(scales.colScales.xMin, scales.colScales.xMax), speed * random_float(0.5, 1.5), BACK_INOUT);
-        scales.colRampY.go(random(scales.colScales.yMin, scales.colScales.yMax), speed * random_float(0.5, 1.5), BACK_INOUT);
-
+        int lumX = random(scales.lumScales.xMin, scales.lumScales.xMax);
+        scales.lumRampX.go(lumX, speed * random_float(0.5, 1.5), BACK_INOUT);
         if (reporting)
         {
-            Serial.println(">> updating scale limits");
+            Serial.print("lumX = ");
+            Serial.print(lumX);
+            Serial.print(", ");
+        }
+    }
+    if (change_all || random(10) % 2 == 0)
+    {
+        int lumY = random(scales.lumScales.yMin, scales.lumScales.yMax);
+        scales.lumRampY.go(lumY, speed * random_float(0.5, 1.5), BACK_INOUT);
+        if (reporting)
+        {
+            Serial.print("lumY = ");
+            Serial.print(lumY);
+            Serial.print(", ");
+        }
+    }
+    if (change_all || random(10) % 2 == 0)
+    {
+        int colX = random(scales.colScales.xMin, scales.colScales.xMax);
+        scales.colRampX.go(colX, speed * random_float(0.5, 1.5), BACK_INOUT);
+        if (reporting)
+        {
+            Serial.print("colX = ");
+            Serial.print(colX);
+            Serial.print(", ");
+        }
+    }
+    if (change_all || random(10) % 2 == 0)
+    {
+        int colY = random(scales.colScales.yMin, scales.colScales.yMax);
+        scales.colRampY.go(colY, speed * random_float(0.5, 1.5), BACK_INOUT);
+        if (reporting)
+        {
+            Serial.print("colY = ");
+            Serial.println(colY);
         }
     }
 }
@@ -479,15 +526,16 @@ void generateNewHues(palette &palette, const uint8_t minDistance, bool exclude_g
 
     if (reporting)
     {
-        //Serial.println();
+        Serial.println();
         if (exclude_green)
         {
-            Serial.print(">> randomized hues (A,B,C,D), no green: ");
+            Serial.println(">> randomized hues, avoiding green: ");
         }
         else
         {
-            Serial.print(">> randomized hues (A,B,C,D): ");
+            Serial.println(">> randomized hues: ");
         }
+        Serial.print("    Hues A,B,C,D: ");
         Serial.print(palette.hueA);
         Serial.print(", ");
         Serial.print(palette.hueB);
@@ -500,13 +548,8 @@ void generateNewHues(palette &palette, const uint8_t minDistance, bool exclude_g
 
 // assigns color instruction to the four palette colors based on requested palette type
 // void updatePalette(palette &palette, const String &paletteType, bool increment = false, bool new_hues = false, bool exclude_green = false, bool reporting = false)
-void updatePalette(palette &palette, const String &paletteType, bool increment = false, bool reporting = false)
+void updatePalette(palette &palette, const String &paletteType, bool increment = false, bool replace_all = true, bool reporting = false)
 {
-    // if (new_hues)
-    // {
-    //     generateNewHues(palette, 30, exclude_green, reporting);
-    // }
-
     if (increment)
     {
         switchPalette = (switchPalette + 1) % (sizeof(paletteNames) / sizeof(paletteNames[0]));
@@ -550,10 +593,10 @@ void updatePalette(palette &palette, const String &paletteType, bool increment =
     }
     else if (paletteType == "static")
     {
-        palette.recipe[0] = {palette.hueA, 0, 255, 255, 255, 255};
-        palette.recipe[1] = {palette.hueA, 0, 255, 255, 255, 255};
-        palette.recipe[2] = {palette.hueA, 0, 255, 255, 255, 255};
-        palette.recipe[3] = {palette.hueA, 0, 255, 255, 255, 255};
+        for (int i = 0; i < 4; i++)
+        {
+            palette.recipe[i] = {palette.hueA, 0, 0, 0, 255, 255};
+        }
     }
     else // "Unknown palette type"
     {
@@ -565,6 +608,7 @@ void updatePalette(palette &palette, const String &paletteType, bool increment =
 
     if (reporting)
     {
+        Serial.println();
         if (increment) 
         {
             Serial.print(">> switching to ");
@@ -576,6 +620,9 @@ void updatePalette(palette &palette, const String &paletteType, bool increment =
             Serial.println(" palette");
         }
     }
+
+    assemblePalette(palette, replace_all, reporting);
+
 }
 
 
@@ -588,7 +635,7 @@ void findUglyHues(palette &palette, int increment)
     Serial.println(index);
 
     palette.hueA = index;
-    updatePalette(palette, "static", false, true);
+    updatePalette(palette, "static", false, true, true);
     triggerBlend(palette, 250, true, true);
 }
 
@@ -612,4 +659,3 @@ bool isColorEqual(const CRGB &color1, const CRGB &color2)
 {
     return (color1.r == color2.r && color1.g == color2.g && color1.b == color2.b);
 }
-
