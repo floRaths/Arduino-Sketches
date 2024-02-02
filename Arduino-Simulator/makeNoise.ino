@@ -36,7 +36,7 @@ void makeNoise(palette pllt, scales &scales, int motionSpeed, bool dataSmoothing
         scales.colRampX.update(), // scalex
         scales.xyVals[3],         // y
         scales.colRampY.update(), // scalex
-        millis() * motionSpeed    // timeVal
+        millis() * (motionSpeed / 4)    // timeVal
     );
 
     CRGBPalette16 runPal = CRGBPalette16(pllt.runCol[0], pllt.runCol[1], pllt.runCol[2], pllt.runCol[3]);

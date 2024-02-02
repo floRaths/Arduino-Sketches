@@ -20,7 +20,8 @@ const bool prototyping = false;
 const int  xOffset = -4;
 
 uint8_t hurry = 4;
-const char *paletteNames[] = {"monochrome", "duotone", "tricolore", "pastel", "pastelAccent", "static"};
+//const char *paletteNames[] = {"monochrome", "duotone", "tricolore", "pastel", "pastelAccent", "static"};
+const char *paletteNames[] = {"monochrome", "duotone"};
 const int  *brightnessVals[] = {255, 128, 86};
 
 #include "auxFnss/auxFnss.h"
@@ -56,8 +57,8 @@ void setup()
   // pllt.hueC = 199;
   pllt.paletteType = "duotone";
 
-  scls.colScales = {5000, 25000, 5000, 25000};
-  scls.lumScales = {5000, 50000, 5000, 50000};
+  scls.colScales = {2500, 15000, 2500, 15000};
+  scls.lumScales = {2500, 18000, 2500, 18000};
 
   strp.upper_limit = LAST_LED;
   strp.lower_limit = 0;
@@ -66,11 +67,11 @@ void setup()
 
   generateNewHues (pllt, 30, true, true);
   updatePalette   (pllt, pllt.paletteType, false, true);
-  changeScales    (scls, 8000, false, false);
+  changeScales    (scls, 15000, true, true);
   changeBrightness(3500, false, brightnessVals[0], true);
   changeStripRange(strp, false, true, strp.upper_limit, strp.lower_limit, 5000);
 
-  triggerBlend  (pllt, 50, true, true, true);
+  triggerBlend  (pllt, 50, true, true);
   blendColors   (pllt);
 
   indexRamp.go(255, 25000, LINEAR, BACKANDFORTH);
@@ -80,29 +81,28 @@ void setup()
 // ################## LOOP ####################
 void loop()
 {
-  int hueChange   = 58;
-  int plltChange  = 36;
-  int scaleChange = 42;
-  
-
-  EVERY_N_SECONDS(hueChange)
+  EVERY_N_SECONDS(180)
   {
     Serial.println();
-    generateNewHues(pllt, 30, true, true);
-  }
-  
-  EVERY_N_SECONDS(plltChange)
-  {
-    Serial.println();
-    //Serial.println("######## Periodic Rendomizaiton ########");
-    updatePalette (pllt, pllt.paletteType, false, true);
-    triggerBlend  (pllt, plltChange * 900, false, true, true);
+    Serial.println("######## Introducing New Hues ########");
+    generateNewHues(pllt, 15, true, true);
+    updatePalette(pllt, pllt.paletteType, false, true, true);
+    triggerBlend(pllt, 25000, true, true);
   }
 
-  EVERY_N_SECONDS(scaleChange)
+  EVERY_N_SECONDS(32)
   {
     Serial.println();
-    changeScales(scls, scaleChange * 900, false, true);
+    Serial.println("######## Palette Randomizaiton ########");
+    updatePalette(pllt, pllt.paletteType, false, false, true);
+    triggerBlend(pllt, 25000, true, true);
+  }
+
+  EVERY_N_SECONDS(70)
+  {
+    Serial.println();
+    Serial.println("######## Scale Randomizaiton ########");
+    changeScales(scls, 25000, true, true);
   }
 
   paletteIndex = indexRamp.update();
@@ -111,7 +111,7 @@ void loop()
   makeNoise(pllt, scls, hurry, true);
   updateRange(strp.lowerRamp.update(), strp.upperRamp.update(), 10);
   FastLED.setBrightness(briRamp.update());
-  // fadeToBlackBy(leds, NUM_LEDS, 64);
+  //fadeToBlackBy(leds, NUM_LEDS, 64);
   FastLED.show();
   btn.tick();
 }
