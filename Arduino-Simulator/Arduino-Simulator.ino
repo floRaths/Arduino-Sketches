@@ -5,7 +5,7 @@
 #define LED_PIN 5
 #define BTN_PIN 7
 
-OneButton btn = OneButton(BTN_PIN, true, true);
+//OneButton btn = OneButton(BTN_PIN, true, true);
 
 const uint8_t MatrixX = 8;
 const uint8_t MatrixY = 10;
@@ -30,7 +30,7 @@ palette pllt;
 scales  scls;
 stripRange strp;
 
-#include "buttons/buttons.h"
+//#include "buttons/buttons.h"
 
 // ################## SETUP ####################
 void setup()
@@ -44,9 +44,9 @@ void setup()
   FastLED.setTemperature(Tungsten40W);
   FastLED.setBrightness(0);
 
-  btn.attachClick(buttonClick);
-  btn.attachLongPressStart(buttonHold);
-  btn.setPressMs(250);
+  // btn.attachClick(buttonClick);
+  // btn.attachLongPressStart(buttonHold);
+  // btn.setPressMs(250);
 
   Serial.println();
   Serial.println("######## Hello Lamp ########");
@@ -90,7 +90,7 @@ void loop()
     triggerBlend(pllt, 25000, true, true);
   }
 
-  EVERY_N_SECONDS(32)
+  EVERY_N_SECONDS(26)
   {
     Serial.println();
     Serial.println("######## Palette Randomizaiton ########");
@@ -113,5 +113,5 @@ void loop()
   FastLED.setBrightness(briRamp.update());
   //fadeToBlackBy(leds, NUM_LEDS, 64);
   FastLED.show();
-  btn.tick();
+  //btn.tick();
 }
