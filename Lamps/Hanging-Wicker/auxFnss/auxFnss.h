@@ -561,12 +561,11 @@ void updatePalette(palette &palette, const String &paletteType, bool increment =
     }
     else if (paletteType == "duotone")
     {
-        palette.recipe[0] = {palette.hueA, 10, 85,  255,  85, 255};
-        palette.recipe[1] = {palette.hueA, 10, 200, 255, 185, 255};
-        palette.recipe[2] = {palette.hueB, 10, 200, 255, 185, 255};
-        palette.recipe[3] = {palette.hueB, 10, 85,  255,  85, 255};
+        palette.recipe[0] = {palette.hueA, 2, 150, 200, 255, 255};
+        palette.recipe[1] = {palette.hueA, 2, 150, 200, 255, 255};
+        palette.recipe[2] = {palette.hueB, 2, 150, 200, 255, 255};
+        palette.recipe[3] = {palette.hueB, 2, 150, 200, 255, 255};
     }
-    
     else if (paletteType == "tricolore")
     {
         palette.recipe[0] = {palette.hueA, 20,  85, 255, 150, 255};

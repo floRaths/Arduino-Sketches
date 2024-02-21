@@ -53,20 +53,22 @@ void setup()
   Serial.println("############################");
 
   
+  pllt.hueA = 38;
+  pllt.hueB = 42;
   // pllt.hueA = 48;
   // pllt.hueB = 146;
-  // pllt.hueC = 199;
+  // pllt.hueC = 170;
   pllt.paletteType = "duotone";
 
   scls.colScales = {2500, 15000, 2500, 15000};
-  scls.lumScales = {2500, 18000, 2500, 18000};
+  scls.lumScales = {12000, 18000, 12000, 18000};
 
   strp.upper_limit = LAST_LED;
   strp.lower_limit = 0;
 
   initializePerlin(scls, 500, 10000);
 
-  generateNewHues (pllt, 30, true, true);
+  // generateNewHues (pllt, 30, true, true);
   updatePalette   (pllt, pllt.paletteType, false, true);
   changeScales    (scls, 15000, true, true);
   changeBrightness(3500, false, brightnessVals[0], true);
@@ -83,14 +85,14 @@ void setup()
 // ################## LOOP ####################
 void loop()
 {
-  EVERY_N_SECONDS(180)
-  {
-    Serial.println();
-    Serial.println("######## Introducing New Hues ########");
-    generateNewHues(pllt, 15, true, true);
-    updatePalette(pllt, pllt.paletteType, false, true, true);
-    triggerBlend(pllt, 25000, true, true);
-  }
+  // EVERY_N_SECONDS(180)
+  // {
+  //   Serial.println();
+  //   Serial.println("######## Introducing New Hues ########");
+  //   generateNewHues(pllt, 15, true, true);
+  //   updatePalette(pllt, pllt.paletteType, false, true, true);
+  //   triggerBlend(pllt, 25000, true, true);
+  // }
 
   EVERY_N_SECONDS(26)
   {
