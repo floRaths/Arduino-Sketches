@@ -19,7 +19,7 @@ const bool serpentine = false;
 const bool prototyping = false;
 const int  xOffset = -4;
 
-uint8_t hurry = 4;
+uint8_t hurry = 6;
 //const char *paletteNames[] = {"monochrome", "duotone", "tricolore", "pastel", "pastelAccent", "static"};
 const char *paletteNames[] = {"monochrome", "duotone"};
 const int  *brightnessVals[] = {255, 128, 86};
@@ -61,7 +61,7 @@ void setup()
   pllt.paletteType = "duotone";
 
   scls.colScales = {2500, 15000, 2500, 15000};
-  scls.lumScales = {12000, 18000, 12000, 18000};
+  scls.lumScales = {9000, 12000, 9000, 12000};
 
   strp.upper_limit = LAST_LED;
   strp.lower_limit = 0;
@@ -85,7 +85,7 @@ void setup()
 // ################## LOOP ####################
 void loop()
 {
-  // EVERY_N_SECONDS(180)
+  // EVERY_N_SECONDS(34)
   // {
   //   Serial.println();
   //   Serial.println("######## Introducing New Hues ########");
