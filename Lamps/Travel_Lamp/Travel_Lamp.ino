@@ -35,7 +35,7 @@ stripRange strp;
 // ################## SETUP ####################
 void setup()
 {
-  delay(100); // startup safety delay  
+  delay(100); // startup safety delay
   Serial.begin(9600);
   randomSeed(analogRead(0));
 
