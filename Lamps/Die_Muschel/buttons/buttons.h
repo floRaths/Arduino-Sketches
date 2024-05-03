@@ -2,7 +2,7 @@
 void buttonClick()
 {
     changeBrightness(1000, true, 255, true);
-    changeStripRange(strp, false, true);
+    changeStripRange(strp, true, true);
 }
 
 // Instructions for Hold Button action

@@ -27,8 +27,7 @@ const int  xOffset = 0;
 
 uint8_t hurry = 6;
 //const char *paletteNames[] = {"monochrome", "duotone", "tricolore", "pastel", "pastelAccent", "static"};
-const char paletteNames[] = {"monochrome", "duotone"};
-//const int  *brightnessVals[] = {255, 86, 86};
+const String paletteNames[] = {"duotone"};
 const int brightnessVals[] = {255, 86, 86};
 
 
@@ -89,7 +88,8 @@ void setup()
 
 // ################## LOOP ####################
 void loop()
-{
+{ 
+  btn.tick();
 
   if (anythingGoes == 2 && has_been_pressed)
   {
@@ -127,5 +127,4 @@ void loop()
   FastLED.setBrightness(briRamp.update());
   //fadeToBlackBy(leds, NUM_LEDS, 64);
   FastLED.show();
-  btn.tick();
 }

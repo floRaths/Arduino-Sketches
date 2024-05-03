@@ -23,7 +23,7 @@ struct palette
     CRGB runCol[4];
     CRGB oldCol[4];
     
-    char paletteType;
+    String paletteType;
 };
 
 struct scaleLimits
@@ -396,14 +396,13 @@ void changeStripRange(stripRange &stripRange, bool increment = false, bool repor
 {
     if (increment)
     {
-        //switchStripRange = (switchStripRange + 1) % (sizeof(stripRangeVals) / sizeof(stripRangeVals[0]));
         switchStripRange = (switchStripRange + 1) % 3;
 
         int overall_speed = 1000;
 
         if (switchStripRange == 0)
         {
-            stripRange.upper_limit = LAST_LED;
+            stripRange.upper_limit = LAST_LED-4;
             stripRange.lower_limit = 0;
 
             stripRange.upper_speed = overall_speed;
@@ -419,7 +418,7 @@ void changeStripRange(stripRange &stripRange, bool increment = false, bool repor
         }
         else if (switchStripRange == 2)
         {
-            stripRange.upper_limit = LAST_LED * 0.25;
+            stripRange.upper_limit = 20;
             stripRange.lower_limit = 0;
 
             stripRange.upper_speed = overall_speed;
@@ -551,7 +550,7 @@ void generateNewHues(palette &palette, const uint8_t minDistance, bool exclude_g
 
 // assigns color instruction to the four palette colors based on requested palette type
 // void updatePalette(palette &palette, const String &paletteType, bool increment = false, bool new_hues = false, bool exclude_green = false, bool reporting = false)
-void updatePalette(palette &palette, char &paletteType, bool increment = false, bool replace_all = true, bool reporting = false)
+void updatePalette(palette &palette, String &paletteType, bool increment = false, bool replace_all = true, bool reporting = false)
 {
     if (increment)
     {
@@ -559,20 +558,20 @@ void updatePalette(palette &palette, char &paletteType, bool increment = false, 
         paletteType = paletteNames[switchPalette];
     }
 
-    if (paletteType == "monochrome")
+    if (paletteType == "duotone")
     {
-        palette.recipe[0] = {palette.hueA, 10, 100, 255, 155, 255};
-        palette.recipe[1] = {palette.hueA, 10, 155, 255, 55, 255};
-        palette.recipe[2] = {palette.hueA, 10, 155, 255, 55, 255};
-        palette.recipe[3] = {palette.hueA, 10, 100, 255, 155, 255};
+        palette.recipe[0] = {palette.hueA, 10, 55, 255, 100, 255};
+        palette.recipe[1] = {palette.hueA, 10, 180, 255, 220, 255};
+        palette.recipe[2] = {palette.hueB, 10, 180, 255, 220, 255};
+        palette.recipe[3] = {palette.hueB, 10, 55, 255, 100, 255};
     }
-    else if (paletteType == "duotone")
-    {
-        palette.recipe[0] = {palette.hueA, 10, 100, 200, 100, 255};
-        palette.recipe[1] = {palette.hueA, 10, 180, 200, 220, 255};
-        palette.recipe[2] = {palette.hueB, 10, 180, 200, 220, 255};
-        palette.recipe[3] = {palette.hueB, 10, 100, 200, 100, 255};
-    }
+    // else if (paletteType == "monochrome")
+    // {
+    //     palette.recipe[0] = {palette.hueA, 10, 100, 255, 155, 255};
+    //     palette.recipe[1] = {palette.hueA, 10, 155, 255, 55, 255};
+    //     palette.recipe[2] = {palette.hueA, 10, 155, 255, 55, 255};
+    //     palette.recipe[3] = {palette.hueA, 10, 100, 255, 155, 255};
+    // }
     // else if (paletteType == "tricolore")
     // {
     //     palette.recipe[0] = {palette.hueA, 20,  85, 255, 150, 255};
@@ -612,12 +611,14 @@ void updatePalette(palette &palette, char &paletteType, bool increment = false, 
     if (reporting)
     {
         Serial.println();
-        if (increment) 
+        if (increment)
         {
             Serial.print(">> switching to ");
             Serial.print(paletteType);
             Serial.println(" palette");
-        } else {
+        }
+        else
+        {
             Serial.print(">> updating ");
             Serial.print(paletteType);
             Serial.println(" palette");
@@ -625,9 +626,7 @@ void updatePalette(palette &palette, char &paletteType, bool increment = false, 
     }
 
     assemblePalette(palette, replace_all, reporting);
-
 }
-
 
 // // ########## TEST FUNCTIONS ##########
 // // test function to increment hues to determine undesired values
