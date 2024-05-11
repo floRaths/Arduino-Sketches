@@ -1,7 +1,7 @@
-rampInt briRamp;
-ramp blendRamp1, blendRamp2, indexRamp;
+ramp briRamp, blendRamp1, blendRamp2, indexRamp;
 bool blending, stored_colors, palette_changed, has_been_pressed;
-uint8_t paletteIndex, switchPalette, switchBrightness, switchStripRange, anythingGoes = 2;
+uint8_t paletteIndex, intensity, switchPalette, switchIntensity, switchBrightness, switchStripRange, anythingGoes = 2;
+
 
 // Struct to hold info on color ranges in order to request certain palette types
 struct colorType
@@ -283,13 +283,6 @@ void blendColors(palette &palette, bool reporting = false)
 
 // ########## SCALE FUNCTIONS ##########
 // startup function to set the initial values for the noise scaling
-/**
- * This function adds two integers and returns the result.
- *
- * @param a The first integer
- * @param b The second integer
- * @return The sum of a and b
- */
 void initializePerlin(scales &scales, int scaleStartingPoint, int xyRandom)
 {
 
@@ -548,58 +541,59 @@ void generateNewHues(palette &palette, const uint8_t minDistance, bool exclude_g
     }
 }
 
+
 // assigns color instruction to the four palette colors based on requested palette type
-// void updatePalette(palette &palette, const String &paletteType, bool increment = false, bool new_hues = false, bool exclude_green = false, bool reporting = false)
-void updatePalette(palette &palette, String &paletteType, bool increment = false, bool replace_all = true, bool reporting = false)
+//void updatePalette(palette &palette, const String &paletteType, bool increment = false, bool new_hues = false, bool exclude_green = false, bool reporting = false)
+void updatePalette(palette &palette, String &paletteType, bool increment = false, uint8_t sat = 255, bool replace_all = true, bool reporting = false)
 {
     if (increment)
     {
         switchPalette = (switchPalette + 1) % (sizeof(paletteNames) / sizeof(paletteNames[0]));
         paletteType = paletteNames[switchPalette];
     }
-
+    
     if (paletteType == "duotone")
     {
-        palette.recipe[0] = {palette.hueA, 10, 55, 255, 100, 255};
-        palette.recipe[1] = {palette.hueA, 10, 180, 255, 220, 255};
-        palette.recipe[2] = {palette.hueB, 10, 180, 255, 220, 255};
-        palette.recipe[3] = {palette.hueB, 10, 55, 255, 100, 255};
+        palette.recipe[0] = {palette.hueA, 10, sat*0.2, sat, 100, 255};
+        palette.recipe[1] = {palette.hueA, 10, sat*0.7, sat, 220, 255};
+        palette.recipe[2] = {palette.hueB, 10, sat*0.7, sat, 220, 255};
+        palette.recipe[3] = {palette.hueB, 10, sat*0.2, sat, 100, 255};
     }
-    // else if (paletteType == "monochrome")
-    // {
-    //     palette.recipe[0] = {palette.hueA, 10, 100, 255, 155, 255};
-    //     palette.recipe[1] = {palette.hueA, 10, 155, 255, 55, 255};
-    //     palette.recipe[2] = {palette.hueA, 10, 155, 255, 55, 255};
-    //     palette.recipe[3] = {palette.hueA, 10, 100, 255, 155, 255};
-    // }
-    // else if (paletteType == "tricolore")
-    // {
-    //     palette.recipe[0] = {palette.hueA, 20,  85, 255, 150, 255};
-    //     palette.recipe[1] = {palette.hueA, 28, 155, 255, 150, 255};
-    //     palette.recipe[2] = {palette.hueB, 27, 155, 255, 150, 255};
-    //     palette.recipe[3] = {palette.hueC, 27, 155, 255, 150, 255};
-    // }
-    // else if (paletteType == "pastel")
-    // {
-    //     palette.recipe[0] = {palette.hueA, 0, 0, 0, 255, 255};
-    //     palette.recipe[1] = {palette.hueA, 0, 0, 0, 255, 255};
-    //     palette.recipe[2] = {palette.hueA, 0, 0, 0, 255, 255};
-    //     palette.recipe[3] = {palette.hueA, 0, 0, 0, 255, 255};
-    // }
-    // else if (paletteType == "pastelAccent")
-    // {
-    //     palette.recipe[0] = {palette.hueA, 10,   0,   0, 200, 255};
-    //     palette.recipe[1] = {palette.hueB, 10, 205, 255, 200, 255};
-    //     palette.recipe[2] = {palette.hueA, 10,   0,   0, 200, 255};
-    //     palette.recipe[3] = {palette.hueA, 10,   0,   0, 200, 255};
-    // }
-    // else if (paletteType == "static")
-    // {
-    //     for (int i = 0; i < 4; i++)
-    //     {
-    //         palette.recipe[i] = {palette.hueA, 0, 0, 0, 255, 255};
-    //     }
-    // }
+    else if (paletteType == "monochrome")
+    {
+        palette.recipe[0] = {palette.hueA, 10, sat*0.2, sat, 155, 255};
+        palette.recipe[1] = {palette.hueA, 10, sat*0.7, sat, 55, 255};
+        palette.recipe[2] = {palette.hueA, 10, sat*0.7, sat, 55, 255};
+        palette.recipe[3] = {palette.hueA, 10, sat*0.2, sat, 155, 255};
+    }
+    else if (paletteType == "tricolore")
+    {
+        palette.recipe[0] = {palette.hueA, 20, sat*0.3, sat, 150, 255};
+        palette.recipe[1] = {palette.hueA, 28, sat*0.6, sat, 150, 255};
+        palette.recipe[2] = {palette.hueB, 27, sat*0.6, sat, 150, 255};
+        palette.recipe[3] = {palette.hueC, 27, sat*0.6, sat, 150, 255};
+    }
+    else if (paletteType == "pastel")
+    {
+        palette.recipe[0] = {palette.hueA, 10, sat*0, sat*0, 100, 255};
+        palette.recipe[3] = {palette.hueA, 10, sat*0, sat*0, 220, 255};
+        palette.recipe[2] = {palette.hueB, 10, sat*0, sat*0, 220, 255};
+        palette.recipe[1] = {palette.hueB, 10, 255, 255, 100, 255};
+    }
+    else if (paletteType == "pastelAccent")
+    {
+        palette.recipe[0] = {palette.hueA, 10,   0,   sat, 200, 255};
+        palette.recipe[1] = {palette.hueB, 10, 205, sat, 200, 255};
+        palette.recipe[2] = {palette.hueA, 10,   0,   sat, 200, 255};
+        palette.recipe[3] = {palette.hueA, 10,   0,   sat, 200, 255};
+    }
+    else if (paletteType == "static")
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            palette.recipe[i] = {palette.hueA, 0, 0, sat, 255, 255};
+        }
+    }
     else // "Unknown palette type"
     {
         palette.recipe[0] = {palette.hueA, 10, 1, 255, 1, 255};

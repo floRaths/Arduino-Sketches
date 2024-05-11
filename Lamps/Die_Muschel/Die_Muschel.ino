@@ -1,9 +1,10 @@
+
 #include <FastLED.h>
 #include <Ramp.h>
 #include <OneButton.h>
-#include <Adafruit_DotStar.h>
+//#include <Adafruit_DotStar.h>
 
-Adafruit_DotStar strip(DOTSTAR_NUM, PIN_DOTSTAR_DATA, PIN_DOTSTAR_CLK, DOTSTAR_BRG);
+//Adafruit_DotStar strip(DOTSTAR_NUM, PIN_DOTSTAR_DATA, PIN_DOTSTAR_CLK, DOTSTAR_BRG);
 
 // Pin definitions
 #define LED_PIN 5
@@ -25,19 +26,20 @@ const bool serpentine = true;
 const bool prototyping = false;
 const int  xOffset = 0;
 
-uint8_t hurry = 6;
-//const char *paletteNames[] = {"monochrome", "duotone", "tricolore", "pastel", "pastelAccent", "static"};
-const String paletteNames[] = {"duotone"};
+uint8_t hurry = 26;
+
+const String paletteNames[] = {"duotone", "pastel"};
+uint8_t Intensities[] = {255, 100, 20};
 const int brightnessVals[] = {255, 86, 86};
 
 
-#include "auxFnss/auxFnss.h"
+#include "auxFnss.h"
 
 palette pllt;
 scales  scls;
 stripRange strp;
 
-#include "buttons/buttons.h"
+#include "buttons.h"
 
 // ################## SETUP ####################
 void setup()
@@ -51,8 +53,9 @@ void setup()
   FastLED.setTemperature(Tungsten40W);
   FastLED.setBrightness(0);
 
-  btn.attachClick(buttonClick);
-  btn.attachLongPressStart(buttonHold);
+  btn.attachClick(userPalette);
+  btn.attachDoubleClick(userBrightness);
+  btn.attachLongPressStart(userIntensity);
   btn.setPressMs(250);
 
   Serial.println();
@@ -65,7 +68,9 @@ void setup()
   pllt.paletteType = "duotone";
 
   scls.colScales = {2500, 15000, 2500, 15000};
-  scls.lumScales = {5000, 18000, 5000, 18000};
+  //scls.lumScales = {5000, 18000, 5000, 18000};
+  // scls.colScales = {15000, 18000, 15000, 18000};
+  scls.lumScales = {15000, 18000, 15000, 18000};
 
   strp.upper_limit = LAST_LED - 4;
   strp.lower_limit = 0;
@@ -73,7 +78,7 @@ void setup()
   initializePerlin(scls, 500, 10000);
 
   // generateNewHues (pllt, 30, true, true);
-  updatePalette   (pllt, pllt.paletteType, false, true);
+  updatePalette   (pllt, pllt.paletteType, false, 255, true);
   changeScales    (scls, 15000, true, true);
   changeBrightness(3500, false, brightnessVals[0], true);
   changeStripRange(strp, false, true, strp.upper_limit, strp.lower_limit, 5000);
@@ -81,7 +86,7 @@ void setup()
   triggerBlend  (pllt, 50, true, true);
   blendColors   (pllt);
 
-  indexRamp.go(255, 25000, LINEAR, BACKANDFORTH);
+  //indexRamp.go(255, 25000, LINEAR, BACKANDFORTH);
 }
 
 
@@ -91,34 +96,35 @@ void loop()
 { 
   btn.tick();
 
-  if (anythingGoes == 2 && has_been_pressed)
-  {
-    EVERY_N_SECONDS(180)
-    {
-      Serial.println();
-      Serial.println("######## Introducing New Hues ########");
-      generateNewHues(pllt, 15, true, true);
-      updatePalette(pllt, pllt.paletteType, false, true, true);
-      triggerBlend(pllt, 25000, true, true);
-    }
-  }
+  // if (anythingGoes == 2 && has_been_pressed)
+  // {
+  //   EVERY_N_SECONDS(180)
+  //   {
+  //     Serial.println();
+  //     Serial.println("######## Introducing New Hues ########");
+  //     generateNewHues(pllt, 15, true, true);
+  //     updatePalette(pllt, pllt.paletteType, false, true, true);
+  //     triggerBlend(pllt, 25000, true, true);
+  //   }
+  // }
 
-  EVERY_N_SECONDS(26)
-  {
-    Serial.println();
-    Serial.println("######## Palette Randomizaiton ########");
-    updatePalette(pllt, pllt.paletteType, false, false, true);
-    triggerBlend(pllt, 25000, true, true);
-  }
+  // EVERY_N_SECONDS(16)
+  // {
+  //   Serial.println();
+  //   Serial.println("######## Palette Randomizaiton ########");
+  //   generateNewHues(pllt, 15, true, true);
+  //   updatePalette(pllt, pllt.paletteType, false, false, true);
+  //   triggerBlend(pllt, 10000, true, true);
+  // }
 
-  EVERY_N_SECONDS(70)
-  {
-    Serial.println();
-    Serial.println("######## Scale Randomizaiton ########");
-    changeScales(scls, 25000, true, true);
-  }
+  // EVERY_N_SECONDS(70)
+  // {
+  //   Serial.println();
+  //   Serial.println("######## Scale Randomizaiton ########");
+  //   changeScales(scls, 25000, true, true);
+  // }
 
-  paletteIndex = indexRamp.update();
+  //paletteIndex = indexRamp.update();
 
   blendColors(pllt, true);
   makeNoise(pllt, scls, hurry, true);
