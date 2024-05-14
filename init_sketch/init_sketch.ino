@@ -1,3 +1,5 @@
+#include <FastLED.h>
+
 void setup()
 {
     // put your setup code here, to run once:
@@ -7,6 +9,6 @@ void setup()
 void loop()
 {
     // put your main code here, to run repeatedly:
-    Serial.println("Hello Computer");
-    delay(500);
+    Serial.println((inoise8(millis()*100)));
+    delay(100);
 }

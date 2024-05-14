@@ -1,6 +1,6 @@
 #include <FastLED.h>
 
-#define NUM_LEDS  112
+#define NUM_LEDS  10
 #define LED_PIN   5
 
 CRGB leds[NUM_LEDS];
@@ -14,7 +14,9 @@ void setup() {
 
 void loop() {
 
-  CHSV hsvColor(40, 150, 255); // Green color
+  uint8_t mappedValue = map(inoise8(millis()/7), 0, 255, 50, 150);
+  
+  CHSV hsvColor(120, mappedValue, 255); // Green color
 
   // Convert CHSV color to CRGB
   CRGB rgbColor = hsvColor;

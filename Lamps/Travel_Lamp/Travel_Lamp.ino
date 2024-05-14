@@ -17,18 +17,21 @@ const bool coil = true;
 const bool flip = false;
 const bool serpentine = false;
 const bool prototyping = false;
-const int  xOffset = -5;
+const int  xOffset = 0;
 
 uint8_t hurry = 6;
 //const char *paletteNames[] = {"monochrome", "duotone", "tricolore", "pastel", "pastelAccent", "static"};
 const char *paletteNames[] = {"monochrome", "duotone"};
-const int  *brightnessVals[] = {128, 64, 255};
+const int  *brightnessVals[] = {255, 200, 128};
 
 #include "auxFnss/auxFnss.h"
 
 palette pllt;
 scales  scls;
 stripRange strp;
+
+// rampFloat speedRamp;
+// float targetSpeed = 1.0;
 
 #include "buttons/buttons.h"
 
@@ -55,16 +58,17 @@ void setup()
   
   pllt.hueA = 30;
   pllt.hueB = 50;
-  // pllt.hueA = 48;
-  // pllt.hueB = 146;
   // pllt.hueC = 170;
   pllt.paletteType = "duotone";
 
   scls.colScales = {2500, 15000, 2500, 15000};
+
   scls.lumScales = {5000, 18000, 5000, 18000};
 
   strp.upper_limit = LAST_LED;
   strp.lower_limit = 0;
+  strp.upper_store = strp.upper_limit;
+  strp.lower_store = strp.lower_limit;
 
   initializePerlin(scls, 500, 10000);
 
@@ -77,7 +81,7 @@ void setup()
   triggerBlend  (pllt, 50, true, true);
   blendColors   (pllt);
 
-  indexRamp.go(255, 25000, LINEAR, BACKANDFORTH);
+  // speedRamp.go(targetSpeed, 1000, CIRCULAR_INOUT);
 }
 
 
@@ -86,15 +90,25 @@ void setup()
 void loop()
 {
 
+  //uint8_t sinBeat = beatsin8(1, 1, 100, 0, 0);
+  
+  // EVERY_N_MILLISECONDS(5000)
+  // {
+  //   targetSpeed = targetSpeed + 5.5;
+  //   speedRamp.go(targetSpeed, 1000, CIRCULAR_INOUT);
+  //   // paletteIndex = paletteIndex + 1;
+  //   Serial.println(targetSpeed);
+  // }
+
   if (anythingGoes == 2 && has_been_pressed)
   {
-    EVERY_N_SECONDS(180)
+    EVERY_N_SECONDS(28)
     {
       Serial.println();
       Serial.println("######## Introducing New Hues ########");
       generateNewHues(pllt, 15, true, true);
       updatePalette(pllt, pllt.paletteType, false, true, true);
-      triggerBlend(pllt, 25000, true, true);
+      triggerBlend(pllt, 5000, true, true);
     }
   }
 
@@ -106,21 +120,39 @@ void loop()
     triggerBlend(pllt, 25000, true, true);
   }
 
-  EVERY_N_SECONDS(70)
+  //   EVERY_N_SECONDS(2)
+  // {
+  //   // Serial.println();
+  //   // Serial.println("######## scale limits ########");
+  //   // Serial.println(strp.lower_limit);
+  //   // Serial.println(strp.upper_limit);
+  //   // Serial.println(strp.lower_store);
+  //   // Serial.println(strp.upper_store);
+  // }
+
+  if (isPressed == true) {
+    if(briRamp.isFinished() == true && strp.lowerRamp.isFinished() == true) {
+      changeBrightness(1000, false, brightnessVals[switchBrightness], true);
+      changeStripRange(strp, false, true, strp.upper_store, strp.lower_store, 1000);
+      isPressed = false;
+    }
+  }
+
+  EVERY_N_SECONDS(17)
   {
     Serial.println();
     Serial.println("######## Scale Randomizaiton ########");
-    changeScales(scls, 25000, true, true);
+    changeScales(scls, 5000, true, true);
   }
 
-  paletteIndex = indexRamp.update();
+  paletteIndex = map(inoise16(millis()*10), 0, 65535, 0, 255);
 
   blendColors(pllt, true);
   makeNoise(pllt, scls, hurry, true);
   //showCenter(xOffset);
   updateRange(strp.lowerRamp.update(), strp.upperRamp.update(), 10);
   FastLED.setBrightness(briRamp.update());
-  //fadeToBlackBy(leds, NUM_LEDS, 64);
+  // fadeToBlackBy(leds, NUM_LEDS, 64);
   FastLED.show();
   btn.tick();
 }

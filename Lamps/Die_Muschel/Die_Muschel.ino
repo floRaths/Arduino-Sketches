@@ -28,8 +28,8 @@ const int  xOffset = 0;
 
 uint8_t hurry = 26;
 
-const String paletteNames[] = {"duotone", "pastel"};
-uint8_t Intensities[] = {255, 100, 20};
+const String paletteNames[] = {"duotone", "tricolore", "pastel"};
+uint8_t Intensities[] = {255, 200, 100};
 const int brightnessVals[] = {255, 86, 86};
 
 
@@ -68,17 +68,16 @@ void setup()
   pllt.paletteType = "duotone";
 
   scls.colScales = {2500, 15000, 2500, 15000};
-  //scls.lumScales = {5000, 18000, 5000, 18000};
-  // scls.colScales = {15000, 18000, 15000, 18000};
-  scls.lumScales = {15000, 18000, 15000, 18000};
+  scls.lumScales = {5000, 18000, 5000, 18000};
 
   strp.upper_limit = LAST_LED - 4;
   strp.lower_limit = 0;
 
   initializePerlin(scls, 500, 10000);
+  intensity = Intensities[switchIntensity];
 
   // generateNewHues (pllt, 30, true, true);
-  updatePalette   (pllt, pllt.paletteType, false, 255, true);
+  updatePalette   (pllt, pllt.paletteType, false, intensity, true);
   changeScales    (scls, 15000, true, true);
   changeBrightness(3500, false, brightnessVals[0], true);
   changeStripRange(strp, false, true, strp.upper_limit, strp.lower_limit, 5000);
@@ -108,21 +107,23 @@ void loop()
   //   }
   // }
 
-  // EVERY_N_SECONDS(16)
-  // {
-  //   Serial.println();
-  //   Serial.println("######## Palette Randomizaiton ########");
-  //   generateNewHues(pllt, 15, true, true);
-  //   updatePalette(pllt, pllt.paletteType, false, false, true);
-  //   triggerBlend(pllt, 10000, true, true);
-  // }
+  EVERY_N_SECONDS(6)
+  {
+    Serial.println();
+    Serial.println("######## Palette Randomizaiton ########");
+    Serial.print("intensity: ");
+    Serial.println(intensity);
+    generateNewHues(pllt, 15, true, true);
+    updatePalette(pllt, pllt.paletteType, false, intensity, false, true);
+    triggerBlend(pllt, 4000, true, true);
+  }
 
-  // EVERY_N_SECONDS(70)
-  // {
-  //   Serial.println();
-  //   Serial.println("######## Scale Randomizaiton ########");
-  //   changeScales(scls, 25000, true, true);
-  // }
+  EVERY_N_SECONDS(7)
+  {
+    Serial.println();
+    Serial.println("######## Scale Randomizaiton ########");
+    changeScales(scls, 5000, true, true);
+  }
 
   //paletteIndex = indexRamp.update();
 

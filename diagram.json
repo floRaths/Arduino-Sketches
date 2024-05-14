@@ -30,6 +30,6 @@
                     ],
                         "dependencies": { },
                         "serialMonitor": {
-                            "display": "plotter"
+                            "display": "auto"
                         }
                     }

@@ -3,6 +3,31 @@ int maxLumValue = 0; // Assume the first element is the maximum
 // uint8_t testDataBefore = 128;
 // CRGB colorz = CRGB::Green;
 
+// CRGB pulsingColor(float speed, uint8_t hue, uint8_t hue_rng, uint8_t sat_min, uint8_t sat_max, uint8_t bri_min, uint8_t bri_max)
+// {
+//   //if(init_run == false) {
+//     // vari_rnd = random(1000);
+//     //int vari_rnd = 900;
+//     //Serial.println(vari_rnd);
+//     //return vari_rnd;
+//     //init_run = true;
+//   //}
+
+//   //uint16_t rnd_h = inoise16(millis()+vari_rnd);
+//   //uint16_t rnd_s = inoise16(millis());
+//   // uint8_t rnd_s = random(10);
+//   // uint8_t rnd_b = random(10);
+//   //Serial.println(rnd_h);
+//   uint8_t mapped_hue = map8(inoise8(millis()/(speed*2.0)), hue-hue_rng, hue+hue_rng);
+//   uint8_t mapped_sat = map8(inoise8(millis()/(speed*3.0)), sat_min, sat_max);
+//   uint8_t mapped_bri = map8(inoise8(millis()/(speed*5.0)), bri_min, bri_max);
+
+//   // CRGB color = CHSV(mapped_hue, mapped_sat, mapped_bri);
+//   CRGB color = CHSV(mapped_hue, mapped_sat, mapped_bri);
+//   return color;
+// }
+
+
 void makeNoise(palette pllt, scales &scales, int motionSpeed, bool dataSmoothing)
 {
     uint8_t lumNoise[MatrixX][MatrixY]; 
@@ -36,11 +61,13 @@ void makeNoise(palette pllt, scales &scales, int motionSpeed, bool dataSmoothing
         scales.colRampX.update(), // scalex
         scales.xyVals[3],         // y
         scales.colRampY.update(), // scalex
-        millis() * motionSpeed    // timeVal
-        //millis() * (motionSpeed / 4)    // timeVal
+        millis() * (motionSpeed / 4)    // timeVal
     );
 
     CRGBPalette16 runPal = CRGBPalette16(pllt.runCol[0], pllt.runCol[1], pllt.runCol[2], pllt.runCol[3]);
+    // CRGB col1 = pulsingColor(2.5, 30, 10, 100, 255, 100, 255);
+    // CRGB col2 = pulsingColor(3.7, 150, 10, 100, 150, 100, 255);
+    // CRGBPalette16 runPal = CRGBPalette16(col1, col1, col2, col2);
 
     for (int x = 0; x < MatrixX; x++)
     {

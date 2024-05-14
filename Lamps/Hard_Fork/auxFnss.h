@@ -1,5 +1,5 @@
-ramp briRamp, blendRamp1, blendRamp2;//, indexRamp;
-bool blending, stored_colors, palette_changed;
+ramp briRamp, blendRamp1, blendRamp2, indexRamp;
+bool blending, stored_colors, palette_changed, has_been_pressed;
 uint8_t paletteIndex, switchPalette, switchBrightness, switchStripRange, anythingGoes = 2;
 
 // Struct to hold info on color ranges in order to request certain palette types
@@ -44,8 +44,8 @@ struct scales
 struct stripRange
 {
     ramp lowerRamp, upperRamp;
-    uint16_t lower_limit, upper_limit, lower_store, upper_store;
-    uint16_t lower_speed, upper_speed;
+    int lower_limit, upper_limit;
+    int lower_speed, upper_speed;
 };
 
 
@@ -282,7 +282,7 @@ void blendColors(palette &palette, bool reporting = false)
 
 // ########## SCALE FUNCTIONS ##########
 // startup function to set the initial values for the noise scaling
-void initializePerlin(scales &scales, int scaleStartingPoint, int xyRandom)
+void initializePerlin(scales &scales, int scaleStartingPoint, int xyRandom, bool fixed = false)
 {
 
     // the scale scaleStartingPoint determines how "dramatic" the startup animation looks
@@ -294,7 +294,11 @@ void initializePerlin(scales &scales, int scaleStartingPoint, int xyRandom)
     // random xy values for the noise field to ensure different startup each time
     for (int i = 0; i < 4; i++)
     {
-        scales.xyVals[i] = random(xyRandom);
+        if(fixed == false) {
+            scales.xyVals[i] = random(xyRandom);
+        } else if(fixed == true) {
+            scales.xyVals[i] = xyRandom;
+        }
     }
 }
 
@@ -384,14 +388,14 @@ void changeBrightness(int bri_speed, bool increment = false, uint8_t targetBri =
 
 
 // ########## STRIP MARGINS ##########
-void changeStripRange(stripRange &stripRange, bool increment = false, bool reporting = false, uint16_t upper_target = LAST_LED, uint16_t lower_target = 0, int speed = 1000)
+void changeStripRange(stripRange &stripRange, bool increment = false, bool reporting = false, int upper_target = LAST_LED, int lower_target = 0, int speed = 1000)
 {
     if (increment)
     {
         //switchStripRange = (switchStripRange + 1) % (sizeof(stripRangeVals) / sizeof(stripRangeVals[0]));
         switchStripRange = (switchStripRange + 1) % 3;
 
-        uint16_t overall_speed = 1000;
+        int overall_speed = 1000;
 
         if (switchStripRange == 0)
         {
@@ -635,18 +639,18 @@ void updatePalette(palette &palette, const String &paletteType, bool increment =
 // }
 
 // // helper function to reveal the center of the matrix
-void showCenter(int xOffset = 0)
-{
-    for (int y = 0; y < MatrixY; y++)
-    {
-        leds[mtx(MatrixX / 2, y, xOffset)] = CRGB::Blue;
-    };
-    for (int x = 0; x < MatrixX; x++)
-    {
-        leds[mtx(x, MatrixY / 2, xOffset)] = CRGB::Blue;
-    };
-    leds[mtx(MatrixX / 2, MatrixY / 2, xOffset)] = CRGB::Red;
-}
+// void showCenter(int xOffset = 0)
+// {
+//     for (int y = 0; y < MatrixY; y++)
+//     {
+//         leds[mtx(MatrixX / 2, y, xOffset)] = CRGB::Blue;
+//     };
+//     for (int x = 0; x < MatrixX; x++)
+//     {
+//         leds[mtx(x, MatrixY / 2, xOffset)] = CRGB::Blue;
+//     };
+//     leds[mtx(MatrixX / 2, MatrixY / 2, xOffset)] = CRGB::Red;
+// }
 
 // // helper fucntion to test if two colors are the same
 // bool isColorEqual(const CRGB &color1, const CRGB &color2)
