@@ -1,6 +1,6 @@
 ramp briRamp, blendRamp1, blendRamp2;//, indexRamp;
 bool blending, stored_colors, palette_changed;
-uint8_t paletteIndex, switchPalette, switchBrightness, switchStripRange, anythingGoes = 2;
+uint8_t paletteIndex, switchPalette, switchBrightness, switchStripRange;
 
 // Struct to hold info on color ranges in order to request certain palette types
 struct colorType
@@ -358,19 +358,19 @@ void changeBrightness(int bri_speed, bool increment = false, uint8_t targetBri =
     if (increment)
     {
         switchBrightness = (switchBrightness + 1) % (sizeof(brightnessVals) / sizeof(brightnessVals[0]));
-
-        if (switchBrightness == 0)
-        {
-            targetBri = brightnessVals[0];
-        }
-        else if (switchBrightness == 1)
-        {
-            targetBri = brightnessVals[1];
-        }
-        else if (switchBrightness == 2)
-        {
-            targetBri = brightnessVals[2];
-        }
+        targetBri = brightnessVals[switchBrightness];
+        // if (switchBrightness == 0 | switchBrightness == 3 | switchBrightness == 6)
+        // {
+        //     targetBri = brightnessVals[switchBrightness];
+        // }
+        // else if (switchBrightness == 1 | switchBrightness == 4 | switchBrightness == 7)
+        // {
+        //     targetBri = brightnessVals[switchBrightness];
+        // }
+        // else if (switchBrightness == 2)
+        // {
+        //     targetBri = brightnessVals[2];
+        // }
     }
     briRamp.go(targetBri, bri_speed, CIRCULAR_INOUT);
 
@@ -389,11 +389,12 @@ void changeStripRange(stripRange &stripRange, bool increment = false, bool repor
     if (increment)
     {
         //switchStripRange = (switchStripRange + 1) % (sizeof(stripRangeVals) / sizeof(stripRangeVals[0]));
-        switchStripRange = (switchStripRange + 1) % 3;
+        uint8_t n_steps = sizeof(brightnessVals) / sizeof(brightnessVals[0]);
+        switchStripRange = (switchStripRange + 1) % n_steps;
 
         uint16_t overall_speed = 1000;
 
-        if (switchStripRange == 0)
+        if (switchStripRange < (n_steps/3))
         {
             stripRange.upper_limit = LAST_LED;
             stripRange.lower_limit = 0;
@@ -401,7 +402,7 @@ void changeStripRange(stripRange &stripRange, bool increment = false, bool repor
             stripRange.upper_speed = overall_speed;
             stripRange.lower_speed = overall_speed;
         }
-        else if (switchStripRange == 1)
+        else if (switchStripRange < (n_steps/3)*2)
         {
             stripRange.upper_limit = LAST_LED * 0.75;
             stripRange.lower_limit = LAST_LED * 0.25;
@@ -409,9 +410,9 @@ void changeStripRange(stripRange &stripRange, bool increment = false, bool repor
             stripRange.upper_speed = overall_speed;
             stripRange.lower_speed = overall_speed;
         }
-        else if (switchStripRange == 2)
+        else if (switchStripRange < (n_steps/3)*3)
         {
-            stripRange.upper_limit = LAST_LED * 0.25;
+            stripRange.upper_limit = LAST_LED * 0.2;
             stripRange.lower_limit = 0;
 
             stripRange.upper_speed = overall_speed;
@@ -485,39 +486,68 @@ bool testDistance(uint8_t first_hue, uint8_t second_hue, uint8_t minDistance)
     return (test1 <= minDistance) || (test2 <= minDistance);
 }
 
-// randomizes the hues of the palette based on defined constraints
-void generateNewHues(palette &palette, const uint8_t minDistance, bool exclude_green = false, bool reporting = false)
-{
-    uint8_t green_low = 96;
-    uint8_t green_hih = 96;
 
-    if (exclude_green)
+
+    
+    // green_low = 75;
+    // green_hih = 115;
+
+    // do
+    // {
+    //     hueA = random(256);
+    //     hueB = random(256);
+    //     hueC = random(256);
+    //     hueD = random(256);
+        
+    // } while (hueA > green_low && hueA < green_hih &&
+    //          hueB > green_low && hueB < green_hih &&
+    //          hueC > green_low && hueC < green_hih &&
+    //          hueD > green_low && hueD < green_hih);
+
+
+
+// randomizes the hues of the palette based on defined constraints
+void generateNewHues(palette &palette, const uint8_t minDistance, bool exclude_green = false, bool reporting = false, uint8_t green_low = 96, uint8_t green_hih = 96)
+{
+    uint8_t hueA, hueB, hueC, hueD;
+
+    if (exclude_green == true)
     {
-        uint8_t green_low = 75;
-        uint8_t green_hih = 115;
+        green_low = 70;
+        green_hih = 120;
     }
 
     uint8_t hue_old = palette.hueA;
-
-    do // Generate the first color
+    do
     {
-        palette.hueA = random(256);
-    } while (testDistance(palette.hueA, hue_old, minDistance) || (palette.hueA >= green_low && palette.hueA <= green_hih));
+        do // Generate the first color
+        {
+            hueA = random(256);
+        } while (testDistance(hueA, hue_old, minDistance));
 
-    do // Generate the second color
-    {
-        palette.hueB = random(256);
-    } while (testDistance(palette.hueB, palette.hueA, minDistance) || (palette.hueB >= green_low && palette.hueB <= green_hih));
+        do // Generate the second color
+        {
+            hueB = random(256);
+        } while (testDistance(hueB, hueA, minDistance));
 
-    do // Generate the third color
-    {
-        palette.hueC = random(256);
-    } while (testDistance(palette.hueC, palette.hueA, minDistance) || testDistance(palette.hueC, palette.hueB, minDistance) || (palette.hueC >= green_low && palette.hueC <= green_hih));
+        do // Generate the third color
+        {
+            hueC = random(256);
+        } while (testDistance(hueC, hueA, minDistance) && testDistance(hueC, hueB, minDistance));
 
-    do // Generate the fourth color
-    {
-        palette.hueD = random(256);
-    } while (testDistance(palette.hueD, palette.hueA, minDistance) || testDistance(palette.hueD, palette.hueB, minDistance) || testDistance(palette.hueD, palette.hueC, minDistance) || (palette.hueD >= green_low && palette.hueD <= green_hih));
+        do // Generate the fourth color
+        {
+            hueD = random(256);
+        } while (testDistance(hueD, hueA, minDistance) && testDistance(hueD, hueB, minDistance) && testDistance(hueD, hueC, minDistance));
+    } while ((hueA >= green_low && hueA <= green_hih) ||
+             (hueB >= green_low && hueB <= green_hih) ||
+             (hueC >= green_low && hueC <= green_hih) ||
+             (hueD >= green_low && hueD <= green_hih));
+
+    palette.hueA = hueA;
+    palette.hueB = hueB;
+    palette.hueC = hueC;
+    palette.hueD = hueD;
 
     if (reporting)
     {
@@ -541,6 +571,7 @@ void generateNewHues(palette &palette, const uint8_t minDistance, bool exclude_g
     }
 }
 
+
 // assigns color instruction to the four palette colors based on requested palette type
 // void updatePalette(palette &palette, const String &paletteType, bool increment = false, bool new_hues = false, bool exclude_green = false, bool reporting = false)
 void updatePalette(palette &palette, const String &paletteType, bool increment = false, bool replace_all = true, bool reporting = false)
@@ -553,25 +584,32 @@ void updatePalette(palette &palette, const String &paletteType, bool increment =
 
     if (paletteType == "monochrome")
     {
-        palette.recipe[0] = {palette.hueA, 10, 100, 255, 155, 255};
+        palette.recipe[0] = {palette.hueA, 10, 75, 255, 155, 255};
         palette.recipe[1] = {palette.hueA, 10, 155, 255, 55, 255};
         palette.recipe[2] = {palette.hueA, 10, 155, 255, 55, 255};
-        palette.recipe[3] = {palette.hueA, 10, 100, 255, 155, 255};
+        palette.recipe[3] = {palette.hueA, 10, 75, 255, 155, 255};
     }
     else if (paletteType == "duotone")
     {
+        palette.recipe[0] = {palette.hueA, 10, 100, 255, 100, 255};
+        palette.recipe[1] = {palette.hueA, 10, 150, 255, 220, 255};
+        palette.recipe[2] = {palette.hueB, 10, 150, 255, 220, 255};
+        palette.recipe[3] = {palette.hueB, 10, 100, 255, 100, 255};
+    }
+    else if (paletteType == "tricolore")
+    {
+        palette.recipe[0] = {palette.hueA, 10,  85, 255, 150, 255};
+        palette.recipe[1] = {palette.hueA, 10, 155, 255, 150, 255};
+        palette.recipe[2] = {palette.hueC, 10, 155, 255, 150, 255};
+        palette.recipe[3] = {palette.hueB, 10, 155, 255, 150, 255};
+    }
+    else if (paletteType == "startUp")
+    {
         palette.recipe[0] = {palette.hueA, 10, 100, 200, 100, 255};
-        palette.recipe[1] = {palette.hueA, 10, 180, 200, 220, 255};
-        palette.recipe[2] = {palette.hueB, 10, 180, 200, 220, 255};
+        palette.recipe[1] = {palette.hueA, 10, 150, 225, 220, 255};
+        palette.recipe[2] = {palette.hueB, 10, 150, 225, 220, 255};
         palette.recipe[3] = {palette.hueB, 10, 100, 200, 100, 255};
     }
-    // else if (paletteType == "tricolore")
-    // {
-    //     palette.recipe[0] = {palette.hueA, 20,  85, 255, 150, 255};
-    //     palette.recipe[1] = {palette.hueA, 28, 155, 255, 150, 255};
-    //     palette.recipe[2] = {palette.hueB, 27, 155, 255, 150, 255};
-    //     palette.recipe[3] = {palette.hueC, 27, 155, 255, 150, 255};
-    // }
     // else if (paletteType == "pastel")
     // {
     //     palette.recipe[0] = {palette.hueA, 0, 0, 0, 255, 255};
@@ -581,18 +619,18 @@ void updatePalette(palette &palette, const String &paletteType, bool increment =
     // }
     // else if (paletteType == "pastelAccent")
     // {
-    //     palette.recipe[0] = {palette.hueA, 10,   0,   0, 200, 255};
-    //     palette.recipe[1] = {palette.hueB, 10, 205, 255, 200, 255};
-    //     palette.recipe[2] = {palette.hueA, 10,   0,   0, 200, 255};
-    //     palette.recipe[3] = {palette.hueA, 10,   0,   0, 200, 255};
+    //     palette.recipe[0] = {palette.hueA, 10, 50, 100, 200, 255};
+    //     palette.recipe[1] = {palette.hueB, 10, 150, 255, 200, 255};
+    //     palette.recipe[2] = {palette.hueA, 10, 50, 100, 200, 255};
+    //     palette.recipe[3] = {palette.hueA, 10, 50, 100, 200, 255};
     // }
-    // else if (paletteType == "static")
-    // {
-    //     for (int i = 0; i < 4; i++)
-    //     {
-    //         palette.recipe[i] = {palette.hueA, 0, 0, 0, 255, 255};
-    //     }
-    // }
+    else if (paletteType == "static")
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            palette.recipe[i] = {palette.hueA, 0, 255, 255, 255, 255};
+        }
+    }
     else // "Unknown palette type"
     {
         palette.recipe[0] = {palette.hueA, 10, 1, 255, 1, 255};
@@ -621,6 +659,7 @@ void updatePalette(palette &palette, const String &paletteType, bool increment =
 }
 
 
+
 // // ########## TEST FUNCTIONS ##########
 // // test function to increment hues to determine undesired values
 // void findUglyHues(palette &palette, int increment)
@@ -635,7 +674,7 @@ void updatePalette(palette &palette, const String &paletteType, bool increment =
 // }
 
 // // helper function to reveal the center of the matrix
-void showCenter(int xOffset = 0)
+void showCenter(uint8_t xOffset = 0)
 {
     for (int y = 0; y < MatrixY; y++)
     {
@@ -653,3 +692,26 @@ void showCenter(int xOffset = 0)
 // {
 //     return (color1.r == color2.r && color1.g == color2.g && color1.b == color2.b);
 // }
+
+
+void blackout()
+{
+  for (int i = 0; i < NUM_LEDS; i++)
+  {
+    // Check if the pixel is in the middle row and is not part of blackout area
+    if (i >= 0 & i <= 10)
+    {
+      continue; // Skip this pixel
+    }
+    // if (i >= 45 & i <= 55)
+    // {
+    //   continue; // Skip this pixel
+    // }
+    if (i >= 90 & i <= 100)
+    {
+      continue; // Skip this pixel
+    }
+    
+    leds[i] = CRGB::Black; // Set the pixel to black
+  }
+}

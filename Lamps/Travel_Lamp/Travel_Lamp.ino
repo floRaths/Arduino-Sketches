@@ -17,12 +17,14 @@ const bool coil = true;
 const bool flip = false;
 const bool serpentine = false;
 const bool prototyping = false;
-const int  xOffset = 0;
+const uint8_t  xOffset = 0;
 
 uint8_t hurry = 6;
 //const char *paletteNames[] = {"monochrome", "duotone", "tricolore", "pastel", "pastelAccent", "static"};
 const char *paletteNames[] = {"monochrome", "duotone"};
-const int  *brightnessVals[] = {255, 200, 128};
+//const int  *brightnessVals[] = {255, 200, 128};
+//const int  *brightnessVals[] = {255, 255, 255, 128, 128, 128, 64, 64, 64};
+const int  *brightnessVals[] = {255, 128, 64, 255, 128, 64, 255, 128, 64};
 
 #include "auxFnss/auxFnss.h"
 
@@ -47,22 +49,20 @@ void setup()
   FastLED.setTemperature(Tungsten40W);
   FastLED.setBrightness(0);
 
-  btn.attachClick(buttonClick);
-  btn.attachLongPressStart(buttonHold);
+  btn.attachClick(userBrightness);
+  btn.attachLongPressStart(userPalette);
+  btn.attachDoubleClick(userBlink);
   btn.setPressMs(250);
 
   Serial.println();
   Serial.println("######## Hello Lamp ########");
   Serial.println("############################");
 
-  
   pllt.hueA = 30;
   pllt.hueB = 50;
-  // pllt.hueC = 170;
-  pllt.paletteType = "duotone";
+  pllt.paletteType = "startUp";
 
   scls.colScales = {2500, 15000, 2500, 15000};
-
   scls.lumScales = {5000, 18000, 5000, 18000};
 
   strp.upper_limit = LAST_LED;
@@ -86,29 +86,27 @@ void setup()
 
 
 
+
+
 // ################## LOOP ####################
 void loop()
 {
-
-  //uint8_t sinBeat = beatsin8(1, 1, 100, 0, 0);
-  
-  // EVERY_N_MILLISECONDS(5000)
-  // {
-  //   targetSpeed = targetSpeed + 5.5;
-  //   speedRamp.go(targetSpeed, 1000, CIRCULAR_INOUT);
-  //   // paletteIndex = paletteIndex + 1;
-  //   Serial.println(targetSpeed);
-  // }
-
-  if (anythingGoes == 2 && has_been_pressed)
+  if (anythingGoes == true)
   {
-    EVERY_N_SECONDS(28)
+    EVERY_N_SECONDS(35)
     {
       Serial.println();
       Serial.println("######## Introducing New Hues ########");
       generateNewHues(pllt, 15, true, true);
-      updatePalette(pllt, pllt.paletteType, false, true, true);
-      triggerBlend(pllt, 5000, true, true);
+      if (pllt.paletteType == "monochrome")
+      {
+        updatePalette(pllt, pllt.paletteType, false, true, true);
+      }
+      else
+      {
+        updatePalette(pllt, pllt.paletteType, false, false, true);
+      }
+      triggerBlend(pllt, 30000, true, true);
     }
   }
 
@@ -120,20 +118,11 @@ void loop()
     triggerBlend(pllt, 25000, true, true);
   }
 
-  //   EVERY_N_SECONDS(2)
-  // {
-  //   // Serial.println();
-  //   // Serial.println("######## scale limits ########");
-  //   // Serial.println(strp.lower_limit);
-  //   // Serial.println(strp.upper_limit);
-  //   // Serial.println(strp.lower_store);
-  //   // Serial.println(strp.upper_store);
-  // }
 
   if (isPressed == true) {
     if(briRamp.isFinished() == true && strp.lowerRamp.isFinished() == true) {
       changeBrightness(1000, false, brightnessVals[switchBrightness], true);
-      changeStripRange(strp, false, true, strp.upper_store, strp.lower_store, 1000);
+      changeStripRange(strp, false, true, strp.upper_store, strp.lower_store, 1500);
       isPressed = false;
     }
   }
@@ -142,10 +131,12 @@ void loop()
   {
     Serial.println();
     Serial.println("######## Scale Randomizaiton ########");
-    changeScales(scls, 5000, true, true);
+    changeScales(scls, 15000, true, true);
   }
 
-  paletteIndex = map(inoise16(millis()*10), 0, 65535, 0, 255);
+  paletteIndex = map(inoise16(millis()*5), 0, 65535, 0, 255);
+
+  blinkAction();
 
   blendColors(pllt, true);
   makeNoise(pllt, scls, hurry, true);
