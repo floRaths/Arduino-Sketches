@@ -608,10 +608,14 @@ void updatePalette(palette &palette, const String &paletteType, bool increment =
     }
     else if (paletteType == "startUp")
     {
-        palette.recipe[0] = {palette.hueA, 10, 180, 200, 100, 255};
-        palette.recipe[1] = {palette.hueA, 10, 180, 250, 220, 255};
-        palette.recipe[2] = {palette.hueB, 10, 180, 250, 220, 255};
-        palette.recipe[3] = {palette.hueB, 10, 180, 200, 100, 255};
+        palette.recipe[0] = {palette.hueA, 2, 150, 200, 255, 255};
+        palette.recipe[1] = {palette.hueA, 2, 150, 200, 255, 255};
+        palette.recipe[2] = {palette.hueB, 2, 150, 200, 255, 255};
+        palette.recipe[3] = {palette.hueB, 2, 150, 200, 255, 255};
+        // palette.recipe[0] = {palette.hueA, 10, 180, 200, 100, 255};
+        // palette.recipe[1] = {palette.hueA, 10, 180, 250, 220, 255};
+        // palette.recipe[2] = {palette.hueB, 10, 180, 250, 220, 255};
+        // palette.recipe[3] = {palette.hueB, 10, 180, 200, 100, 255};
     }
     // else if (paletteType == "pastel")
     // {

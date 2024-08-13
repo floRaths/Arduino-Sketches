@@ -7,6 +7,8 @@
 
 OneButton btn = OneButton(BTN_PIN, true, true);
 
+// const uint8_t MatrixX = 10;
+// const uint8_t MatrixY = 10;
 const uint8_t MatrixX = 10;
 const uint8_t MatrixY = 10;
 #define NUM_LEDS MatrixX * MatrixY
@@ -58,8 +60,8 @@ void setup()
   Serial.println("######## Hello Lamp ########");
   Serial.println("############################");
 
-  pllt.hueA = 35;
-  pllt.hueB = 35;
+  pllt.hueA = 38;
+  pllt.hueB = 42;
   pllt.paletteType = "startUp";
 
   scls.colScales = {2500, 15000, 2500, 15000};
