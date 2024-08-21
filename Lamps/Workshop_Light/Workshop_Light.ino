@@ -7,15 +7,14 @@
 
 OneButton btn = OneButton(BTN_PIN, true, true);
 
-// const uint8_t MatrixX = 10;
-// const uint8_t MatrixY = 10;
+
 const uint8_t MatrixX = 10;
 const uint8_t MatrixY = 10;
 #define NUM_LEDS MatrixX * MatrixY
 #define LAST_LED NUM_LEDS
 CRGB leds[NUM_LEDS];
 
-const bool coil = true;
+const bool coil = false;
 const bool flip = false;
 const bool serpentine = false;
 const bool prototyping = false;
